@@ -3,12 +3,18 @@
   "private": true,
   "version": "1.0.0",
   "description": "Very awesome Discord bot",
-  "main": "app.js",
+  "main": "src/index.js",
   "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "deploy:commands": "node src/deploy-commands.js"
+  },
   "engines": {
     "node": ">=18.x"
   },
   "dependencies": {
+    "better-sqlite3": "^13.0.2",
     "discord.js": "^14.27.0",
     "dotenv": "^16.6.1"
   }

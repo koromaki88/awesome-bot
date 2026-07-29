@@ -1,0 +1,11 @@
+services:
+  bot:
+    build: .
+    container_name: awesome-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_PATH: data/bot.sqlite
+    volumes:
+      - ./data:/app/data
