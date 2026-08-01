@@ -1,6 +1,6 @@
 import { db } from './database.js';
 
-const reminderDays = [7, 5, 3, 1];
+const reminderDays = [14, 7, 3, 1];
 
 export function upsertAssignment(assignment) {
   return db.prepare(`
