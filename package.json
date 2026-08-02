@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
+    "write:version": "node scripts/write-version.js",
     "deploy:commands": "node src/deploy-commands.js"
   },
   "engines": {
