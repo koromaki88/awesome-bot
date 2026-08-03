@@ -11,12 +11,15 @@ DISCORD_TOKEN=your_bot_token
 APP_ID=your_application_id
 GUILD_ID=your_test_server_id
 BOT_PREFIX=!
+APPROVED_USER_IDS=comma_separated_discord_user_ids
 CANVAS_BASE_URL=https://your-school.instructure.com
 CANVAS_ACCESS_TOKEN=your_canvas_access_token
 DATABASE_PATH=data/bot.sqlite
 ```
 
 `GUILD_ID` is optional, but useful while developing because guild slash commands update faster than global commands.
+
+`APPROVED_USER_IDS` defines the privileged users who can execute certain internal commands.
 
 Create a Canvas access token from Canvas account settings, then put it in `CANVAS_ACCESS_TOKEN`.
 

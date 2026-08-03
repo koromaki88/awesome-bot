@@ -3,9 +3,11 @@ import { Client, GatewayIntentBits } from 'discord.js';
 
 import { commands } from './commands/registry.js';
 import { initializeSchema } from './db/schema.js';
+import { enforceSlashPermission, enforceTextPermission } from './permissions.js';
 import { startReminderScheduler } from './reminders/scheduler.js';
 
 const prefix = process.env.BOT_PREFIX ?? '!';
+const commandErrorMessage = 'Something went wrong while running that command.';
 initializeSchema();
 
 const client = new Client({
@@ -40,11 +42,13 @@ client.on('interactionCreate', async (interaction) => {
   if (!command) return;
 
   try {
+    if (!(await enforceSlashPermission(command, interaction))) return;
+
     await command.slash.execute(interaction);
   } catch (error) {
     console.error(error);
 
-    const response = { content: 'Something went wrong while running that command.', ephemeral: true };
+    const response = { content: commandErrorMessage, ephemeral: true };
 
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp(response);
@@ -64,10 +68,12 @@ client.on('messageCreate', async (message) => {
   if (!command) return;
 
   try {
+    if (!(await enforceTextPermission(command, message))) return;
+
     await command.text.execute(message, args);
   } catch (error) {
     console.error(error);
-    await message.reply('Something went wrong while running that command.');
+    await message.reply(commandErrorMessage);
   }
 });
 

@@ -3,7 +3,10 @@ import { ChannelType, SlashCommandBuilder } from 'discord.js';
 import { createMissingRemindersForSubscription } from '../db/assignments.js';
 import { upsertCourseSubscription } from '../db/subscriptions.js';
 import { fetchCanvasCourse } from '../canvas/client.js';
+import { permissionLevels } from '../permissions.js';
 import { syncCourseAssignments } from '../canvas/syncAssignments.js';
+
+const serverOnlyMessage = 'This command can only be used in a server.';
 
 function requireCanvasConfig() {
   if (!process.env.CANVAS_BASE_URL || !process.env.CANVAS_ACCESS_TOKEN) {
@@ -32,7 +35,13 @@ async function subscribeToCourse({ guildId, channelId, courseId }) {
   return { subscription, assignmentCount };
 }
 
+function formatWatchCourseResponse(subscription, assignmentCount) {
+  return `Watching **${subscription.course_name}** in <#${subscription.channel_id}>. Synced ${assignmentCount} upcoming assignment(s).`;
+}
+
 export const watchCourseCommand = {
+  permissions: { level: permissionLevels.privilegedUser },
+
   slash: {
     data: new SlashCommandBuilder()
       .setName('watchcourse')
@@ -53,7 +62,7 @@ export const watchCourseCommand = {
 
     async execute(interaction) {
       if (!interaction.guildId) {
-        await interaction.reply({ content: 'This command can only be used in a server.', ephemeral: true });
+        await interaction.reply({ content: serverOnlyMessage, ephemeral: true });
         return;
       }
 
@@ -67,9 +76,7 @@ export const watchCourseCommand = {
         courseId,
       });
 
-      await interaction.editReply(
-        `Watching **${subscription.course_name}** in <#${subscription.channel_id}>. Synced ${assignmentCount} upcoming assignment(s).`,
-      );
+      await interaction.editReply(formatWatchCourseResponse(subscription, assignmentCount));
     },
   },
 
@@ -79,7 +86,7 @@ export const watchCourseCommand = {
 
     async execute(message, args) {
       if (!message.guildId) {
-        await message.reply('This command can only be used in a server.');
+        await message.reply(serverOnlyMessage);
         return;
       }
 
@@ -104,9 +111,7 @@ export const watchCourseCommand = {
         courseId,
       });
 
-      await reply.edit(
-        `Watching **${subscription.course_name}** in <#${subscription.channel_id}>. Synced ${assignmentCount} upcoming assignment(s).`,
-      );
+      await reply.edit(formatWatchCourseResponse(subscription, assignmentCount));
     },
   },
 };

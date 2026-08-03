@@ -1,6 +1,9 @@
 import { ChannelType, SlashCommandBuilder } from 'discord.js';
 
 import { removeCourseSubscription } from '../db/subscriptions.js';
+import { permissionLevels } from '../permissions.js';
+
+const serverOnlyMessage = 'This command can only be used in a server.';
 
 function parseChannelId(input) {
   return input?.match(/^<#(\d+)>$/)?.[1] ?? input;
@@ -14,7 +17,17 @@ function unwatchCourse({ guildId, channelId, courseId }) {
   });
 }
 
+function formatNoSubscriptionMessage(courseId, channelId) {
+  return `No reminder subscription found for Canvas course ${courseId} in <#${channelId}>.`;
+}
+
+function formatUnwatchCourseResponse(removed, courseId, channelId) {
+  return `Stopped reminders for **${removed.course_name ?? `Course ${courseId}`}** in <#${channelId}>.`;
+}
+
 export const unwatchCourseCommand = {
+  permissions: { level: permissionLevels.privilegedUser },
+
   slash: {
     data: new SlashCommandBuilder()
       .setName('unwatchcourse')
@@ -35,7 +48,7 @@ export const unwatchCourseCommand = {
 
     async execute(interaction) {
       if (!interaction.guildId) {
-        await interaction.reply({ content: 'This command can only be used in a server.', ephemeral: true });
+        await interaction.reply({ content: serverOnlyMessage, ephemeral: true });
         return;
       }
 
@@ -49,14 +62,14 @@ export const unwatchCourseCommand = {
 
       if (!removed) {
         await interaction.reply({
-          content: `No reminder subscription found for Canvas course ${courseId} in <#${channel.id}>.`,
+          content: formatNoSubscriptionMessage(courseId, channel.id),
           ephemeral: true,
         });
         return;
       }
 
       await interaction.reply({
-        content: `Stopped reminders for **${removed.course_name ?? `Course ${courseId}`}** in <#${channel.id}>.`,
+        content: formatUnwatchCourseResponse(removed, courseId, channel.id),
         ephemeral: true,
       });
     },
@@ -68,7 +81,7 @@ export const unwatchCourseCommand = {
 
     async execute(message, args) {
       if (!message.guildId) {
-        await message.reply('This command can only be used in a server.');
+        await message.reply(serverOnlyMessage);
         return;
       }
 
@@ -93,11 +106,11 @@ export const unwatchCourseCommand = {
       });
 
       if (!removed) {
-        await message.reply(`No reminder subscription found for Canvas course ${courseId} in <#${channel.id}>.`);
+        await message.reply(formatNoSubscriptionMessage(courseId, channel.id));
         return;
       }
 
-      await message.reply(`Stopped reminders for **${removed.course_name ?? `Course ${courseId}`}** in <#${channel.id}>.`);
+      await message.reply(formatUnwatchCourseResponse(removed, courseId, channel.id));
     },
   },
 };
