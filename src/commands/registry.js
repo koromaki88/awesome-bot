@@ -1,6 +1,6 @@
 import { commitCommand } from './commit.js';
-import { greetCommand } from './greet.js';
+import { pingCommand } from './ping.js';
 import { unwatchCourseCommand } from './unwatchCourse.js';
 import { watchCourseCommand } from './watchCourse.js';
 
-export const commands = [greetCommand, watchCourseCommand, unwatchCourseCommand, commitCommand];
+export const commands = [pingCommand, watchCourseCommand, unwatchCourseCommand, commitCommand];
