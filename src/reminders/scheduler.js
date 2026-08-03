@@ -9,10 +9,10 @@ function hasCanvasConfig() {
 }
 
 function formatDueDate(dueAt) {
-  return new Intl.DateTimeFormat('en-US', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(dueAt));
+  const timestamp = Math.floor(new Date(dueAt).getTime() / 1000);
+  if (Number.isNaN(timestamp)) return 'unknown';
+
+  return `<t:${timestamp}:f>`;
 }
 
 async function sendDueReminders(client) {
