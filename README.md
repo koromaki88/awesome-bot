@@ -60,7 +60,6 @@ Stop the bot:
 docker compose down
 ```
 
-```
 View Podman logs:
 
 ```sh
