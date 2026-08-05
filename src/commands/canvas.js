@@ -1,14 +1,43 @@
 import { ChannelType, SlashCommandBuilder } from 'discord.js';
 
+import { syncGuildSubscribedCourses } from '../canvas/syncAssignments.js';
+import { getCourseSubscriptionsByGuild } from '../db/subscriptions.js';
 import { permissionLevels } from '../permissions.js';
 import { formatNoSubscriptionMessage, formatUnwatchCourseResponse, unwatchCourse } from './unwatchCourse.js';
 import { formatWatchCourseResponse, subscribeToCourse } from './watchCourse.js';
 
 const serverOnlyMessage = 'This command can only be used in a server.';
-const usageMessage = 'Usage: `!canvas <watch|unwatch> <canvasCourseId> [#channel]`';
+const usageMessage = 'Usage: `!canvas <watch|unwatch|watchlist|sync> [canvasCourseId] [#channel]`';
+
+function requireCanvasConfig() {
+  if (!process.env.CANVAS_BASE_URL || !process.env.CANVAS_ACCESS_TOKEN) {
+    throw new Error('Canvas is not configured. Add CANVAS_BASE_URL and CANVAS_ACCESS_TOKEN to .env.');
+  }
+}
 
 function parseChannelId(input) {
   return input?.match(/^<#(\d+)>$/)?.[1] ?? input;
+}
+
+function formatWatchlist(subscriptions) {
+  if (subscriptions.length === 0) {
+    return 'No Canvas courses are being watched in this server.';
+  }
+
+  const lines = subscriptions.map((subscription) => {
+    const courseName = subscription.course_name ?? `Course ${subscription.canvas_course_id}`;
+    return `- **${courseName}** (${subscription.canvas_course_id}) in <#${subscription.channel_id}>`;
+  });
+
+  return ['Watched Canvas courses:', ...lines].join('\n');
+}
+
+function formatSyncResult(result) {
+  return `Canvas sync complete: ${result.courses} course(s), ${result.assignments} assignment(s).`;
+}
+
+function getWatchlistMessage(guildId) {
+  return formatWatchlist(getCourseSubscriptionsByGuild(guildId));
 }
 
 async function handleSlashWatch(interaction) {
@@ -46,6 +75,18 @@ async function handleSlashUnwatch(interaction) {
     content: formatUnwatchCourseResponse(removed, courseId, channel.id),
     ephemeral: true,
   });
+}
+
+async function handleSlashWatchlist(interaction) {
+  await interaction.reply({ content: getWatchlistMessage(interaction.guildId), ephemeral: true });
+}
+
+async function handleSlashSync(interaction) {
+  requireCanvasConfig();
+  await interaction.deferReply({ ephemeral: true });
+
+  const result = await syncGuildSubscribedCourses(interaction.guildId);
+  await interaction.editReply(formatSyncResult(result));
 }
 
 async function resolveTextChannel(message, channelInput) {
@@ -105,6 +146,18 @@ async function handleTextUnwatch(message, args) {
   await message.reply(formatUnwatchCourseResponse(removed, courseId, channel.id));
 }
 
+async function handleTextWatchlist(message) {
+  await message.reply(getWatchlistMessage(message.guildId));
+}
+
+async function handleTextSync(message) {
+  requireCanvasConfig();
+  const reply = await message.reply('Syncing watched Canvas courses...');
+
+  const result = await syncGuildSubscribedCourses(message.guildId);
+  await reply.edit(formatSyncResult(result));
+}
+
 export const canvasCommand = {
   permissions: { level: permissionLevels.privilegedUser },
 
@@ -147,6 +200,16 @@ export const canvasCommand = {
               .addChannelTypes(ChannelType.GuildText)
               .setRequired(false),
           ),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName('watchlist')
+          .setDescription('List Canvas courses watched in this server.'),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName('sync')
+          .setDescription('Sync assignments for watched Canvas courses now.'),
       ),
 
     async execute(interaction) {
@@ -164,6 +227,16 @@ export const canvasCommand = {
 
       if (subcommand === 'unwatch') {
         await handleSlashUnwatch(interaction);
+        return;
+      }
+
+      if (subcommand === 'watchlist') {
+        await handleSlashWatchlist(interaction);
+        return;
+      }
+
+      if (subcommand === 'sync') {
+        await handleSlashSync(interaction);
       }
     },
   },
@@ -188,6 +261,16 @@ export const canvasCommand = {
 
       if (subcommand === 'unwatch') {
         await handleTextUnwatch(message, subcommandArgs);
+        return;
+      }
+
+      if (subcommand === 'watchlist') {
+        await handleTextWatchlist(message);
+        return;
+      }
+
+      if (subcommand === 'sync') {
+        await handleTextSync(message);
         return;
       }
 

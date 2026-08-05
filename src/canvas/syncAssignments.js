@@ -1,5 +1,5 @@
 import { upsertAssignment, createMissingRemindersForAssignment } from '../db/assignments.js';
-import { getCourseSubscriptions, getCourseSubscriptionsByCourse } from '../db/subscriptions.js';
+import { getCourseSubscriptions, getCourseSubscriptionsByCourse, getCourseSubscriptionsByGuild } from '../db/subscriptions.js';
 import { fetchCanvasAssignments } from './client.js';
 
 export async function syncCourseAssignments(subscription) {
@@ -26,8 +26,7 @@ export async function syncCourseAssignments(subscription) {
   return assignments.length;
 }
 
-export async function syncSubscribedCourses() {
-  const subscriptions = getCourseSubscriptions();
+async function syncSubscriptions(subscriptions) {
   const courseIds = new Set();
   let syncedAssignments = 0;
 
@@ -39,4 +38,12 @@ export async function syncSubscribedCourses() {
   }
 
   return { courses: courseIds.size, assignments: syncedAssignments };
+}
+
+export async function syncSubscribedCourses() {
+  return syncSubscriptions(getCourseSubscriptions());
+}
+
+export async function syncGuildSubscribedCourses(guildId) {
+  return syncSubscriptions(getCourseSubscriptionsByGuild(guildId));
 }

@@ -70,6 +70,10 @@ podman logs -f awesome-bot
 
 Use `/canvas unwatch` or `!canvas unwatch <canvasCourseId> [#channel]` to stop reminders for a course in a channel.
 
+Use `/canvas watchlist` or `!canvas watchlist` to list watched Canvas courses in the current server.
+
+Use `/canvas sync` or `!canvas sync` to immediately sync assignments for watched Canvas courses in the current server.
+
 The bot syncs subscribed Canvas courses every 6 hours and checks for reminders every 10 minutes.
 
 Assignment reminders are sent 14, 7, 3, and 1 day before the Canvas due date.

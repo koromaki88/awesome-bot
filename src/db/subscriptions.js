@@ -19,6 +19,15 @@ export function getCourseSubscriptions() {
   `).all();
 }
 
+export function getCourseSubscriptionsByGuild(guildId) {
+  return db.prepare(`
+    SELECT *
+    FROM course_subscriptions
+    WHERE guild_id = ?
+    ORDER BY course_name COLLATE NOCASE ASC, canvas_course_id ASC, channel_id ASC
+  `).all(guildId);
+}
+
 export function getCourseSubscriptionsByCourse(canvasCourseId) {
   return db.prepare(`
     SELECT *
