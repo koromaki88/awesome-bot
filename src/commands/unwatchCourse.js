@@ -9,7 +9,7 @@ function parseChannelId(input) {
   return input?.match(/^<#(\d+)>$/)?.[1] ?? input;
 }
 
-function unwatchCourse({ guildId, channelId, courseId }) {
+export function unwatchCourse({ guildId, channelId, courseId }) {
   return removeCourseSubscription({
     guildId,
     channelId,
@@ -17,11 +17,11 @@ function unwatchCourse({ guildId, channelId, courseId }) {
   });
 }
 
-function formatNoSubscriptionMessage(courseId, channelId) {
+export function formatNoSubscriptionMessage(courseId, channelId) {
   return `No reminder subscription found for Canvas course ${courseId} in <#${channelId}>.`;
 }
 
-function formatUnwatchCourseResponse(removed, courseId, channelId) {
+export function formatUnwatchCourseResponse(removed, courseId, channelId) {
   return `Stopped reminders for **${removed.course_name ?? `Course ${courseId}`}** in <#${channelId}>.`;
 }
 

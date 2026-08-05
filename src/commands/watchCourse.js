@@ -18,7 +18,7 @@ function parseChannelId(input) {
   return input?.match(/^<#(\d+)>$/)?.[1] ?? input;
 }
 
-async function subscribeToCourse({ guildId, channelId, courseId }) {
+export async function subscribeToCourse({ guildId, channelId, courseId }) {
   requireCanvasConfig();
 
   const course = await fetchCanvasCourse(courseId);
@@ -35,7 +35,7 @@ async function subscribeToCourse({ guildId, channelId, courseId }) {
   return { subscription, assignmentCount };
 }
 
-function formatWatchCourseResponse(subscription, assignmentCount) {
+export function formatWatchCourseResponse(subscription, assignmentCount) {
   return `Watching **${subscription.course_name}** in <#${subscription.channel_id}>. Synced ${assignmentCount} upcoming assignment(s).`;
 }
 

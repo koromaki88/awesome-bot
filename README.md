@@ -66,8 +66,12 @@ View Podman logs:
 podman logs -f awesome-bot
 ```
 
-`watchcourse` stores the Discord channel and Canvas course ID in SQLite. The bot syncs subscribed Canvas courses every 6 hours and checks for reminders every 10 minutes.
+`/canvas watch` stores the Discord channel and Canvas course ID in SQLite. The text equivalent is `!canvas watch <canvasCourseId> [#channel]`.
 
-Assignment reminders are sent 7, 5, 3, and 1 day before the Canvas due date.
+Use `/canvas unwatch` or `!canvas unwatch <canvasCourseId> [#channel]` to stop reminders for a course in a channel.
+
+The bot syncs subscribed Canvas courses every 6 hours and checks for reminders every 10 minutes.
+
+Assignment reminders are sent 14, 7, 3, and 1 day before the Canvas due date.
 
 When running in Docker or Podman, the SQLite database is stored on the host in `./data` and mounted into the container at `/app/data`.

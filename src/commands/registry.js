@@ -1,6 +1,5 @@
+import { canvasCommand } from './canvas.js';
 import { commitCommand } from './commit.js';
 import { pingCommand } from './ping.js';
-import { unwatchCourseCommand } from './unwatchCourse.js';
-import { watchCourseCommand } from './watchCourse.js';
 
-export const commands = [pingCommand, watchCourseCommand, unwatchCourseCommand, commitCommand];
+export const commands = [pingCommand, canvasCommand, commitCommand];
