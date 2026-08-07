@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
+    "test": "node --test",
+    "check": "npm test",
     "write:version": "node scripts/write-version.js",
     "deploy:commands": "node src/deploy-commands.js"
   },
