@@ -9,6 +9,9 @@ process.env.DATABASE_PATH = join(await mkdtemp(join(tmpdir(), 'awesome-bot-canva
 const { canvasCommand } = await import('../../src/commands/canvas.js');
 const { permissionLevels } = await import('../../src/permissions.js');
 
+/*
+ * Verifies the top-level Canvas command exposes both slash and text metadata.
+ */
 test('canvas command exposes slash and text metadata', () => {
   const slash = canvasCommand.slash.data.toJSON();
 
@@ -20,6 +23,9 @@ test('canvas command exposes slash and text metadata', () => {
   assert.equal(typeof canvasCommand.text.execute, 'function');
 });
 
+/*
+ * Verifies /canvas exposes the expected subcommand names.
+ */
 test('canvas command exposes the expected slash subcommands', () => {
   const slash = canvasCommand.slash.data.toJSON();
   const subcommandNames = slash.options.map((option) => option.name);
@@ -27,10 +33,16 @@ test('canvas command exposes the expected slash subcommands', () => {
   assert.deepEqual(subcommandNames, ['watch', 'unwatch', 'watchlist', 'sync']);
 });
 
+/*
+ * Verifies the Canvas command is protected as a privileged command.
+ */
 test('canvas command is privileged', () => {
   assert.equal(canvasCommand.permissions.level, permissionLevels.privilegedUser);
 });
 
+/*
+ * Verifies !canvas returns the usage message for an unknown subcommand.
+ */
 test('canvas text command returns usage for unknown subcommands', async () => {
   let replyContent;
   const fakeMessage = {
@@ -45,6 +57,9 @@ test('canvas text command returns usage for unknown subcommands', async () => {
   assert.equal(replyContent, 'Usage: `!canvas <watch|unwatch|watchlist|sync> [canvasCourseId] [#channel]`');
 });
 
+/*
+ * Verifies !canvas returns the usage message when no subcommand is provided.
+ */
 test('canvas text command returns usage for missing subcommands', async () => {
   let replyContent;
   const fakeMessage = {
@@ -59,6 +74,9 @@ test('canvas text command returns usage for missing subcommands', async () => {
   assert.equal(replyContent, 'Usage: `!canvas <watch|unwatch|watchlist|sync> [canvasCourseId] [#channel]`');
 });
 
+/*
+ * Verifies !canvas stops with the server-only message outside a Discord guild.
+ */
 test('canvas text command returns server-only message outside a guild', async () => {
   let replyContent;
   const fakeMessage = {
@@ -73,6 +91,9 @@ test('canvas text command returns server-only message outside a guild', async ()
   assert.equal(replyContent, 'This command can only be used in a server.');
 });
 
+/*
+ * Verifies /canvas stops with an ephemeral server-only response outside a guild.
+ */
 test('canvas slash command returns server-only message outside a guild', async () => {
   let replyPayload;
   const fakeInteraction = {

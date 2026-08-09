@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 
 import { pingCommand } from '../../src/commands/ping.js';
 
+/*
+ * Verifies the ping command exposes both slash and text metadata.
+ */
 test('ping command exposes slash and text metadata', () => {
   assert.equal(pingCommand.slash.data.toJSON().name, 'ping');
   assert.equal(pingCommand.text.name, 'ping');
@@ -11,6 +14,9 @@ test('ping command exposes slash and text metadata', () => {
   assert.equal(typeof pingCommand.text.execute, 'function');
 });
 
+/*
+ * Verifies the text ping command replies, calculates latency, and edits its reply.
+ */
 test('text ping replies and edits with latency', async () => {
   let editedContent;
 
@@ -34,6 +40,9 @@ test('text ping replies and edits with latency', async () => {
   assert.equal(editedContent, 'Pong! `50ms`, WebSocket: `42ms`.');
 });
 
+/*
+ * Verifies the slash ping command replies, calculates latency, and edits its reply.
+ */
 test('slash ping replies and edits with latency', async (t) => {
   t.mock.method(Date, 'now', () => 100);
 

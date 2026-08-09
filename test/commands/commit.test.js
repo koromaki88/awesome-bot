@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 
 import { commitCommand } from '../../src/commands/commit.js';
 
+/*
+ * Verifies the commit command exposes slash and text metadata.
+ */
 test('commit command exposes slash and text metadata', () => {
   const slash = commitCommand.slash.data.toJSON();
 
