@@ -37,30 +37,24 @@ Start the bot:
 npm start
 ```
 
-Run with Podman Compose:
+Deploy with Podman:
 
 ```sh
 ./build.sh
 ```
 
-`./build.sh` updates the project, writes `src/version.json` with the current Git commit, rebuilds the container, deploys slash commands, and restarts the bot. The `commit` command uses that version file to compare the running bot against the latest commit on GitHub.
+`./build.sh` updates the project, writes `src/version.json` with the current Git commit, builds a temporary test image, runs the test suite inside Podman, builds the production image, deploys slash commands, and replaces the running bot container only after tests pass. The `commit` command uses that version file to compare the running bot against the latest commit on GitHub.
 
 View logs:
 
 ```sh
-docker compose logs -f bot
+podman logs -f awesome-bot
 ```
 
 Stop the bot:
 
 ```sh
-docker compose down
-```
-
-View Podman logs:
-
-```sh
-podman logs -f awesome-bot
+podman stop awesome-bot
 ```
 
 When running in Docker or Podman, the SQLite database is stored on the host in `./data` and mounted into the container at `/app/data`.
