@@ -7,3 +7,4 @@ data/*.sqlite
 data/*.sqlite-*
 Dockerfile
 docker-compose.yml
+build.sh

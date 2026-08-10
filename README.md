@@ -37,16 +37,13 @@ Start the bot:
 npm start
 ```
 
-Run with Docker Compose:
+Run with Podman Compose:
 
 ```sh
-npm run write:version
-docker compose build
-docker compose run --rm bot npm run deploy:commands
-docker compose up -d
+./build.sh
 ```
 
-`npm run write:version` writes `src/version.json` with the current Git commit before building the container. The `commit` command uses that file to compare the running bot against the latest commit on GitHub.
+`./build.sh` updates the project, writes `src/version.json` with the current Git commit, rebuilds the container, deploys slash commands, and restarts the bot. The `commit` command uses that version file to compare the running bot against the latest commit on GitHub.
 
 View logs:
 

@@ -9,6 +9,17 @@ RUN apt-get update \
 COPY package*.json ./
 RUN npm ci --omit=dev
 
+FROM node:22-bookworm-slim AS test
+
+WORKDIR /app
+
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY package*.json ./
+COPY src ./src
+COPY test ./test
+
+CMD ["npm", "test"]
+
 FROM node:22-bookworm-slim
 
 WORKDIR /app
