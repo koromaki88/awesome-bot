@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 
 process.env.DATABASE_PATH = join(await mkdtemp(join(tmpdir(), 'awesome-bot-canvas-')), 'bot.sqlite');
 
-const { canvasCommand } = await import('../../src/commands/canvas.js');
+const { canvasCommand } = await import('../../src/commands/canvas/index.js');
 const { permissionLevels } = await import('../../src/permissions.js');
 
 /*

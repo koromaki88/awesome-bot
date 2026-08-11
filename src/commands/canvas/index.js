@@ -1,44 +1,11 @@
 import { ChannelType, SlashCommandBuilder } from 'discord.js';
 
-import { syncGuildSubscribedCourses } from '../canvas/syncAssignments.js';
-import { getCourseSubscriptionsByGuild } from '../db/subscriptions.js';
-import { permissionLevels } from '../permissions.js';
+import { permissionLevels } from '../../permissions.js';
+import { formatSyncResult, syncGuildCanvasCourses } from './sync.js';
+import { canvasServerOnlyMessage, canvasUsageMessage, requireCanvasConfig, resolveTextChannel } from './shared.js';
+import { getWatchlistMessage } from './watchlist.js';
 import { formatNoSubscriptionMessage, formatUnwatchCourseResponse, unwatchCourse } from './unwatchCourse.js';
 import { formatWatchCourseResponse, subscribeToCourse } from './watchCourse.js';
-
-const serverOnlyMessage = 'This command can only be used in a server.';
-const usageMessage = 'Usage: `!canvas <watch|unwatch|watchlist|sync> [canvasCourseId] [#channel]`';
-
-function requireCanvasConfig() {
-  if (!process.env.CANVAS_BASE_URL || !process.env.CANVAS_ACCESS_TOKEN) {
-    throw new Error('Canvas is not configured. Add CANVAS_BASE_URL and CANVAS_ACCESS_TOKEN to .env.');
-  }
-}
-
-function parseChannelId(input) {
-  return input?.match(/^<#(\d+)>$/)?.[1] ?? input;
-}
-
-function formatWatchlist(subscriptions) {
-  if (subscriptions.length === 0) {
-    return 'No Canvas courses are being watched in this server.';
-  }
-
-  const lines = subscriptions.map((subscription) => {
-    const courseName = subscription.course_name ?? `Course ${subscription.canvas_course_id}`;
-    return `- **${courseName}** (${subscription.canvas_course_id}) in <#${subscription.channel_id}>`;
-  });
-
-  return ['Watched Canvas courses:', ...lines].join('\n');
-}
-
-function formatSyncResult(result) {
-  return `Canvas sync complete: ${result.courses} course(s), ${result.assignments} assignment(s).`;
-}
-
-function getWatchlistMessage(guildId) {
-  return formatWatchlist(getCourseSubscriptionsByGuild(guildId));
-}
 
 async function handleSlashWatch(interaction) {
   await interaction.deferReply({ ephemeral: true });
@@ -85,21 +52,14 @@ async function handleSlashSync(interaction) {
   requireCanvasConfig();
   await interaction.deferReply({ ephemeral: true });
 
-  const result = await syncGuildSubscribedCourses(interaction.guildId);
+  const result = await syncGuildCanvasCourses(interaction.guildId);
   await interaction.editReply(formatSyncResult(result));
-}
-
-async function resolveTextChannel(message, channelInput) {
-  const channelId = parseChannelId(channelInput) ?? message.channelId;
-  const channel = await message.guild.channels.fetch(channelId).catch(() => null);
-
-  return channel?.isTextBased() ? channel : null;
 }
 
 async function handleTextWatch(message, args) {
   const [courseId, channelInput] = args;
   if (!courseId) {
-    await message.reply(usageMessage);
+    await message.reply(canvasUsageMessage);
     return;
   }
 
@@ -122,7 +82,7 @@ async function handleTextWatch(message, args) {
 async function handleTextUnwatch(message, args) {
   const [courseId, channelInput] = args;
   if (!courseId) {
-    await message.reply(usageMessage);
+    await message.reply(canvasUsageMessage);
     return;
   }
 
@@ -154,7 +114,7 @@ async function handleTextSync(message) {
   requireCanvasConfig();
   const reply = await message.reply('Syncing watched Canvas courses...');
 
-  const result = await syncGuildSubscribedCourses(message.guildId);
+  const result = await syncGuildCanvasCourses(message.guildId);
   await reply.edit(formatSyncResult(result));
 }
 
@@ -214,7 +174,7 @@ export const canvasCommand = {
 
     async execute(interaction) {
       if (!interaction.guildId) {
-        await interaction.reply({ content: serverOnlyMessage, ephemeral: true });
+        await interaction.reply({ content: canvasServerOnlyMessage, ephemeral: true });
         return;
       }
 
@@ -247,7 +207,7 @@ export const canvasCommand = {
 
     async execute(message, args) {
       if (!message.guildId) {
-        await message.reply(serverOnlyMessage);
+        await message.reply(canvasServerOnlyMessage);
         return;
       }
 
@@ -274,7 +234,7 @@ export const canvasCommand = {
         return;
       }
 
-      await message.reply(usageMessage);
+      await message.reply(canvasUsageMessage);
     },
   },
 };

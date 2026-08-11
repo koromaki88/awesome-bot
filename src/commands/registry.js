@@ -1,4 +1,4 @@
-import { canvasCommand } from './canvas.js';
+import { canvasCommand } from './canvas/index.js';
 import { commitCommand } from './commit.js';
 import { pingCommand } from './ping.js';
 
