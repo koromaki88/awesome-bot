@@ -2,6 +2,16 @@ import { createMissingAnnouncementDelivery, upsertAnnouncement } from '../db/ann
 import { getCourseSubscriptions, getCourseSubscriptionsByCourse, getCourseSubscriptionsByGuild } from '../db/subscriptions.js';
 import { fetchCanvasAnnouncements } from './client.js';
 
+export function isAnnouncementDeliverable(announcement, subscription) {
+  if (!announcement.posted_at || !subscription.announcement_baseline_at) return false;
+
+  const postedAt = new Date(announcement.posted_at).getTime();
+  const baselineAt = new Date(subscription.announcement_baseline_at).getTime();
+  if (Number.isNaN(postedAt) || Number.isNaN(baselineAt)) return false;
+
+  return postedAt >= baselineAt;
+}
+
 export async function syncCourseAnnouncements(subscription) {
   const announcements = await fetchCanvasAnnouncements(subscription.canvas_course_id);
   const subscriptions = getCourseSubscriptionsByCourse(subscription.canvas_course_id);
@@ -19,6 +29,8 @@ export async function syncCourseAnnouncements(subscription) {
     });
 
     for (const courseSubscription of subscriptions) {
+      if (!isAnnouncementDeliverable(canvasAnnouncement, courseSubscription)) continue;
+
       createMissingAnnouncementDelivery(courseSubscription.id, announcement.id);
     }
   }

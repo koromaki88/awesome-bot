@@ -2,8 +2,8 @@ import { db } from './database.js';
 
 export function upsertCourseSubscription({ guildId, channelId, canvasCourseId, courseName }) {
   return db.prepare(`
-    INSERT INTO course_subscriptions (guild_id, channel_id, canvas_course_id, course_name)
-    VALUES (@guildId, @channelId, @canvasCourseId, @courseName)
+    INSERT INTO course_subscriptions (guild_id, channel_id, canvas_course_id, course_name, announcement_baseline_at)
+    VALUES (@guildId, @channelId, @canvasCourseId, @courseName, CURRENT_TIMESTAMP)
     ON CONFLICT(guild_id, channel_id, canvas_course_id) DO UPDATE SET
       course_name = excluded.course_name,
       updated_at = CURRENT_TIMESTAMP

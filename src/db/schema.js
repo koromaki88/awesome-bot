@@ -8,6 +8,7 @@ export function initializeSchema() {
       channel_id TEXT NOT NULL,
       canvas_course_id TEXT NOT NULL,
       course_name TEXT,
+      announcement_baseline_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(guild_id, channel_id, canvas_course_id)
@@ -72,4 +73,15 @@ export function initializeSchema() {
     CREATE INDEX IF NOT EXISTS idx_announcements_course_id ON announcements(canvas_course_id);
     CREATE INDEX IF NOT EXISTS idx_announcement_deliveries_pending ON announcement_deliveries(sent_at, created_at);
   `);
+
+  const columns = db.prepare('PRAGMA table_info(course_subscriptions)').all();
+  if (!columns.some((column) => column.name === 'announcement_baseline_at')) {
+    db.exec('ALTER TABLE course_subscriptions ADD COLUMN announcement_baseline_at TEXT');
+  }
+
+  db.prepare(`
+    UPDATE course_subscriptions
+    SET announcement_baseline_at = CURRENT_TIMESTAMP
+    WHERE announcement_baseline_at IS NULL
+  `).run();
 }
