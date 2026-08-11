@@ -30,7 +30,15 @@ test('canvas command exposes the expected slash subcommands', () => {
   const slash = canvasCommand.slash.data.toJSON();
   const subcommandNames = slash.options.map((option) => option.name);
 
-  assert.deepEqual(subcommandNames, ['watch', 'unwatch', 'watchlist', 'sync']);
+  assert.deepEqual(subcommandNames, ['watch', 'unwatch', 'watchlist', 'sync', 'preview']);
+});
+
+test('canvas preview uses position option', () => {
+  const slash = canvasCommand.slash.data.toJSON();
+  const preview = slash.options.find((option) => option.name === 'preview');
+  const optionNames = preview.options.map((option) => option.name);
+
+  assert.deepEqual(optionNames, ['course_id', 'position']);
 });
 
 /*
@@ -54,7 +62,7 @@ test('canvas text command returns usage for unknown subcommands', async () => {
 
   await canvasCommand.text.execute(fakeMessage, ['unknown']);
 
-  assert.equal(replyContent, 'Usage: `!canvas <watch|unwatch|watchlist|sync> [canvasCourseId] [#channel]`');
+  assert.equal(replyContent, 'Usage: `!canvas <watch|unwatch|watchlist|sync|preview> [canvasCourseId] [count]`');
 });
 
 /*
@@ -71,7 +79,7 @@ test('canvas text command returns usage for missing subcommands', async () => {
 
   await canvasCommand.text.execute(fakeMessage, []);
 
-  assert.equal(replyContent, 'Usage: `!canvas <watch|unwatch|watchlist|sync> [canvasCourseId] [#channel]`');
+  assert.equal(replyContent, 'Usage: `!canvas <watch|unwatch|watchlist|sync|preview> [canvasCourseId] [count]`');
 });
 
 /*

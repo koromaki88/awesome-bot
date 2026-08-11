@@ -1,5 +1,5 @@
 export const canvasServerOnlyMessage = 'This command can only be used in a server.';
-export const canvasUsageMessage = 'Usage: `!canvas <watch|unwatch|watchlist|sync> [canvasCourseId] [#channel]`';
+export const canvasUsageMessage = 'Usage: `!canvas <watch|unwatch|watchlist|sync|preview> [canvasCourseId] [count]`';
 
 export function requireCanvasConfig() {
   if (!process.env.CANVAS_BASE_URL || !process.env.CANVAS_ACCESS_TOKEN) {

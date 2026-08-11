@@ -2,6 +2,7 @@ import { ChannelType, SlashCommandBuilder } from 'discord.js';
 
 import { sendPendingAnnouncements } from '../../canvas/announcementDelivery.js';
 import { permissionLevels } from '../../permissions.js';
+import { formatPreviewResult, parsePreviewPosition, previewCourseAnnouncement, previewUsageMessage } from './preview.js';
 import { formatSyncResult, syncGuildCanvasCourses } from './sync.js';
 import { canvasServerOnlyMessage, canvasUsageMessage, requireCanvasConfig, resolveTextChannel } from './shared.js';
 import { getWatchlistMessage } from './watchlist.js';
@@ -56,6 +57,21 @@ async function handleSlashSync(interaction) {
   const result = await syncGuildCanvasCourses(interaction.guildId);
   await sendPendingAnnouncements(interaction.client, { guildId: interaction.guildId });
   await interaction.editReply(formatSyncResult(result));
+}
+
+async function handleSlashPreview(interaction) {
+  requireCanvasConfig();
+  await interaction.deferReply({ ephemeral: true });
+
+  const courseId = interaction.options.getString('course_id', true);
+  const position = interaction.options.getInteger('position') ?? 1;
+  const sent = await previewCourseAnnouncement({
+    courseId,
+    position,
+    channel: interaction.channel,
+  });
+
+  await interaction.editReply(formatPreviewResult(sent, position));
 }
 
 async function handleTextWatch(message, args) {
@@ -121,6 +137,26 @@ async function handleTextSync(message) {
   await reply.edit(formatSyncResult(result));
 }
 
+async function handleTextPreview(message, args) {
+  const [courseId, positionInput] = args;
+  const position = parsePreviewPosition(positionInput);
+  if (!courseId || position === null) {
+    await message.reply(previewUsageMessage);
+    return;
+  }
+
+  requireCanvasConfig();
+
+  const reply = await message.reply(`Previewing Canvas announcement ${position} for course ${courseId}...`);
+  const sent = await previewCourseAnnouncement({
+    courseId,
+    position,
+    channel: message.channel,
+  });
+
+  await reply.edit(formatPreviewResult(sent, position));
+}
+
 export const canvasCommand = {
   permissions: { level: permissionLevels.privilegedUser },
 
@@ -173,6 +209,25 @@ export const canvasCommand = {
         subcommand
           .setName('sync')
           .setDescription('Sync assignments for watched Canvas courses now.'),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName('preview')
+          .setDescription('Preview recent Canvas announcements in this channel without saving delivery state.')
+          .addStringOption((option) =>
+            option
+              .setName('course_id')
+              .setDescription('The Canvas course ID to preview announcements from.')
+              .setRequired(true),
+          )
+          .addIntegerOption((option) =>
+            option
+              .setName('position')
+              .setDescription('Which recent announcement to preview: 1 is newest, 2 is next newest. Defaults to 1.')
+              .setMinValue(1)
+              .setMaxValue(10)
+              .setRequired(false),
+          ),
       ),
 
     async execute(interaction) {
@@ -200,6 +255,11 @@ export const canvasCommand = {
 
       if (subcommand === 'sync') {
         await handleSlashSync(interaction);
+        return;
+      }
+
+      if (subcommand === 'preview') {
+        await handleSlashPreview(interaction);
       }
     },
   },
@@ -234,6 +294,11 @@ export const canvasCommand = {
 
       if (subcommand === 'sync') {
         await handleTextSync(message);
+        return;
+      }
+
+      if (subcommand === 'preview') {
+        await handleTextPreview(message, subcommandArgs);
         return;
       }
 
