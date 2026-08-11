@@ -59,3 +59,16 @@ export async function fetchCanvasAssignments(courseId) {
 
   return assignments;
 }
+
+export async function fetchCanvasAnnouncements(courseId) {
+  const announcements = [];
+  let nextPath = `/announcements?context_codes[]=course_${courseId}&active_only=true&per_page=100`;
+
+  while (nextPath) {
+    const { data, nextUrl } = await canvasRequest(nextPath);
+    announcements.push(...data);
+    nextPath = nextUrl;
+  }
+
+  return announcements;
+}

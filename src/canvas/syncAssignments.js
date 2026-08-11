@@ -1,6 +1,7 @@
 import { upsertAssignment, createMissingRemindersForAssignment } from '../db/assignments.js';
 import { getCourseSubscriptions, getCourseSubscriptionsByCourse, getCourseSubscriptionsByGuild } from '../db/subscriptions.js';
 import { fetchCanvasAssignments } from './client.js';
+import { syncGuildSubscribedCourseAnnouncements, syncSubscribedCourseAnnouncements } from './syncAnnouncements.js';
 
 export async function syncCourseAssignments(subscription) {
   const assignments = await fetchCanvasAssignments(subscription.canvas_course_id);
@@ -41,9 +42,27 @@ async function syncSubscriptions(subscriptions) {
 }
 
 export async function syncSubscribedCourses() {
-  return syncSubscriptions(getCourseSubscriptions());
+  const [assignmentsResult, announcementsResult] = await Promise.all([
+    syncSubscriptions(getCourseSubscriptions()),
+    syncSubscribedCourseAnnouncements(),
+  ]);
+
+  return {
+    courses: assignmentsResult.courses,
+    assignments: assignmentsResult.assignments,
+    announcements: announcementsResult.announcements,
+  };
 }
 
 export async function syncGuildSubscribedCourses(guildId) {
-  return syncSubscriptions(getCourseSubscriptionsByGuild(guildId));
+  const [assignmentsResult, announcementsResult] = await Promise.all([
+    syncSubscriptions(getCourseSubscriptionsByGuild(guildId)),
+    syncGuildSubscribedCourseAnnouncements(guildId),
+  ]);
+
+  return {
+    courses: assignmentsResult.courses,
+    assignments: assignmentsResult.assignments,
+    announcements: announcementsResult.announcements,
+  };
 }

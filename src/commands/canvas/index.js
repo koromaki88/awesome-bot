@@ -1,5 +1,6 @@
 import { ChannelType, SlashCommandBuilder } from 'discord.js';
 
+import { sendPendingAnnouncements } from '../../canvas/announcementDelivery.js';
 import { permissionLevels } from '../../permissions.js';
 import { formatSyncResult, syncGuildCanvasCourses } from './sync.js';
 import { canvasServerOnlyMessage, canvasUsageMessage, requireCanvasConfig, resolveTextChannel } from './shared.js';
@@ -53,6 +54,7 @@ async function handleSlashSync(interaction) {
   await interaction.deferReply({ ephemeral: true });
 
   const result = await syncGuildCanvasCourses(interaction.guildId);
+  await sendPendingAnnouncements(interaction.client, { guildId: interaction.guildId });
   await interaction.editReply(formatSyncResult(result));
 }
 
@@ -115,6 +117,7 @@ async function handleTextSync(message) {
   const reply = await message.reply('Syncing watched Canvas courses...');
 
   const result = await syncGuildCanvasCourses(message.guildId);
+  await sendPendingAnnouncements(message.client, { guildId: message.guildId });
   await reply.edit(formatSyncResult(result));
 }
 

@@ -1,4 +1,5 @@
 import { getDueReminders, markReminderSent } from '../db/assignments.js';
+import { sendPendingAnnouncements } from '../canvas/announcementDelivery.js';
 import { syncSubscribedCourses } from '../canvas/syncAssignments.js';
 
 const reminderCheckMs = 10 * 60 * 1000;
@@ -33,22 +34,26 @@ async function sendDueReminders(client) {
   }
 }
 
-async function runCanvasSync() {
+async function runCanvasSync(client) {
   if (!hasCanvasConfig()) {
     console.warn('Canvas sync skipped: missing CANVAS_BASE_URL or CANVAS_ACCESS_TOKEN.');
     return;
   }
 
   const result = await syncSubscribedCourses();
-  console.log(`Canvas sync complete: ${result.courses} course(s), ${result.assignments} assignment(s).`);
+  console.log(`Canvas sync complete: ${result.courses} course(s), ${result.assignments} assignment(s), ${result.announcements} announcement(s).`);
+
+  if (client) {
+    await sendPendingAnnouncements(client);
+  }
 }
 
 export function startReminderScheduler(client) {
-  runCanvasSync().catch((error) => console.error('Canvas sync failed:', error));
+  runCanvasSync(client).catch((error) => console.error('Canvas sync failed:', error));
   sendDueReminders(client).catch((error) => console.error('Reminder check failed:', error));
 
   setInterval(() => {
-    runCanvasSync().catch((error) => console.error('Canvas sync failed:', error));
+    runCanvasSync(client).catch((error) => console.error('Canvas sync failed:', error));
   }, canvasSyncMs);
 
   setInterval(() => {
