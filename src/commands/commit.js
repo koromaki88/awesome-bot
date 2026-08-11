@@ -92,7 +92,7 @@ async function commitMessage() {
     }
 
     const runningCommit = version.commitFull ?? version.commit;
-    const status = latestCommit && sameCommit(runningCommit, latestCommit) ? 'up to date' : 'behind';
+    const status = latestCommit && sameCommit(runningCommit, latestCommit) ? 'up to date' : 'not synced';
 
     return [
       `Running commit: \`${shortCommit(runningCommit)}\``,
