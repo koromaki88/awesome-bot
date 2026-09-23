@@ -26,7 +26,7 @@ const categories = [
         },
         {
           name: 'Personal reminder',
-          value: `\`${prefix}remindme <duration> <message>\`\n\`/remindme duration:<duration> message:<message>\`\nSchedule a DM reminder. Example duration: \`3d2h5m\`.`,
+          value: `\`${prefix}remindme <duration> <message>\`\n\`/remindme duration:<duration> message:<message>\`\nSchedule a DM reminder. Units: \`mo\` months, \`w\` weeks, \`d\` days, \`h\` hours, \`m\` minutes, \`s\` seconds.`,
         },
         {
           name: 'Commit',

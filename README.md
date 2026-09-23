@@ -30,7 +30,9 @@ or open one directly with a command such as `!help canvas`. `!canvas` and `!canv
 also open the Canvas command guide.
 
 Schedule a personal DM reminder with `!remindme 3d2h5m I want to do something`, or use
-`/remindme`. Durations can combine days (`d`), hours (`h`), and minutes (`m`).
+`/remindme`. Durations can combine calendar months (`mo`), weeks (`w`), days (`d`),
+hours (`h`), minutes (`m`), and seconds (`s`). Calendar months preserve the day of the
+month when possible, or use the target month's last day when necessary.
 
 Register slash commands:
 

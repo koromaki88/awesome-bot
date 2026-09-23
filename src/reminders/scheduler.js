@@ -4,7 +4,7 @@ import { sendPendingAnnouncements } from '../canvas/announcementDelivery.js';
 import { syncSubscribedCourses } from '../canvas/syncAssignments.js';
 
 const reminderCheckMs = 10 * 60 * 1000;
-const personalReminderCheckMs = 30 * 1000;
+const personalReminderCheckMs = 1000;
 const canvasSyncMs = 6 * 60 * 60 * 1000;
 let personalReminderCheckRunning = false;
 

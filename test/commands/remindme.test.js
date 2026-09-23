@@ -8,7 +8,7 @@ process.env.DATABASE_PATH = join(await mkdtemp(join(tmpdir(), 'awesome-bot-remin
 
 const { db } = await import('../../src/db/database.js');
 const { initializeSchema } = await import('../../src/db/schema.js');
-const { parseReminderDuration, remindmeCommand } = await import('../../src/commands/remindme.js');
+const { calculateReminderDate, parseReminderDuration, remindmeCommand } = await import('../../src/commands/remindme.js');
 const { formatPersonalReminder, sendDuePersonalReminders } = await import('../../src/reminders/scheduler.js');
 
 initializeSchema();
@@ -22,10 +22,31 @@ test('remindme command exposes slash and text metadata', () => {
   assert.deepEqual(remindmeCommand.text.aliases, ['remind']);
 });
 
-test('reminder durations combine days, hours, and minutes', () => {
-  assert.equal(parseReminderDuration('3d2h5m'), ((3 * 24 + 2) * 60 + 5) * 60 * 1000);
-  assert.equal(parseReminderDuration('15m'), 15 * 60 * 1000);
-  assert.equal(parseReminderDuration('2H30M'), 150 * 60 * 1000);
+test('reminder durations combine all supported units', () => {
+  assert.deepEqual(parseReminderDuration('1mo2w3d4h5m6s'), {
+    calendarMonths: 1,
+    elapsedMs: (((2 * 7 + 3) * 24 + 4) * 60 * 60 + 5 * 60 + 6) * 1000,
+  });
+  assert.deepEqual(parseReminderDuration('2H30M'), {
+    calendarMonths: 0,
+    elapsedMs: 150 * 60 * 1000,
+  });
+});
+
+test('calendar months preserve the day or clamp to the last valid day', () => {
+  const january31 = new Date('2030-01-31T12:34:56.000Z');
+
+  assert.equal(calculateReminderDate('1mo', january31).toISOString(), '2030-02-28T12:34:56.000Z');
+  assert.equal(calculateReminderDate('2mo', january31).toISOString(), '2030-03-31T12:34:56.000Z');
+  assert.equal(
+    calculateReminderDate('1mo', new Date('2032-01-29T12:00:00.000Z')).toISOString(),
+    '2032-02-29T12:00:00.000Z',
+  );
+});
+
+test('weeks and seconds calculate the expected reminder date', () => {
+  const start = new Date('2030-01-01T00:00:00.000Z');
+  assert.equal(calculateReminderDate('1w5s', start).toISOString(), '2030-01-08T00:00:05.000Z');
 });
 
 test('invalid or empty reminder durations are rejected', () => {
