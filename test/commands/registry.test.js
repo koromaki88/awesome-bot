@@ -15,8 +15,8 @@ test('registry includes the expected commands', () => {
   const slashNames = commands.filter((command) => command.slash).map((command) => command.slash.data.toJSON().name);
   const textNames = commands.filter((command) => command.text).map((command) => command.text.name);
 
-  assert.deepEqual(slashNames.sort(), ['canvas', 'commit', 'ping']);
-  assert.deepEqual(textNames.sort(), ['canvas', 'commit', 'ping']);
+  assert.deepEqual(slashNames.sort(), ['canvas', 'commit', 'help', 'ping']);
+  assert.deepEqual(textNames.sort(), ['canvas', 'commit', 'help', 'ping']);
 });
 
 /*

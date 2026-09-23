@@ -2,6 +2,7 @@ import { ChannelType, SlashCommandBuilder } from 'discord.js';
 
 import { sendPendingAnnouncements } from '../../canvas/announcementDelivery.js';
 import { permissionLevels } from '../../permissions.js';
+import { createHelpPayload } from '../help.js';
 import { formatPreviewResult, parsePreviewPosition, previewCourseAnnouncement, previewUsageMessage } from './preview.js';
 import { formatSyncResult, syncGuildCanvasCourses } from './sync.js';
 import { canvasServerOnlyMessage, canvasUsageMessage, requireCanvasConfig, resolveTextChannel } from './shared.js';
@@ -276,6 +277,11 @@ export const canvasCommand = {
 
       const [subcommandInput, ...subcommandArgs] = args;
       const subcommand = subcommandInput?.toLowerCase();
+
+      if (!subcommand || subcommand === 'help') {
+        await message.reply(createHelpPayload('canvas'));
+        return;
+      }
 
       if (subcommand === 'watch') {
         await handleTextWatch(message, subcommandArgs);

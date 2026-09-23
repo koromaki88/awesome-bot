@@ -29,6 +29,11 @@ const textCommands = new Map(
       ...command.text.aliases.map((alias) => [alias, command]),
     ]),
 );
+const componentHandlers = new Map(
+  commands.flatMap((command) =>
+    (command.components ?? []).map((component) => [component.customId, component.execute]),
+  ),
+);
 
 client.once('clientReady', () => {
   console.log(`Bot is online and logged in as ${client.user.tag}.`);
@@ -36,6 +41,25 @@ client.once('clientReady', () => {
 });
 
 client.on('interactionCreate', async (interaction) => {
+  if (interaction.isStringSelectMenu()) {
+    const execute = componentHandlers.get(interaction.customId);
+    if (!execute) return;
+
+    try {
+      await execute(interaction);
+    } catch (error) {
+      console.error(error);
+
+      const response = { content: commandErrorMessage, ephemeral: true };
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp(response);
+      } else {
+        await interaction.reply(response);
+      }
+    }
+    return;
+  }
+
   if (!interaction.isChatInputCommand()) return;
 
   const command = slashCommands.get(interaction.commandName);

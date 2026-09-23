@@ -66,20 +66,35 @@ test('canvas text command returns usage for unknown subcommands', async () => {
 });
 
 /*
- * Verifies !canvas returns the usage message when no subcommand is provided.
+ * Verifies !canvas opens its command guide when no subcommand is provided.
  */
-test('canvas text command returns usage for missing subcommands', async () => {
-  let replyContent;
+test('canvas text command returns help for missing subcommands', async () => {
+  let replyPayload;
   const fakeMessage = {
     guildId: 'guild-1',
-    async reply(content) {
-      replyContent = content;
+    async reply(payload) {
+      replyPayload = payload;
     },
   };
 
   await canvasCommand.text.execute(fakeMessage, []);
 
-  assert.equal(replyContent, 'Usage: `!canvas <watch|unwatch|watchlist|sync|preview> [canvasCourseId] [count]`');
+  assert.equal(replyPayload.embeds[0].toJSON().title, '📚 2. Canvas Commands');
+  assert.equal(replyPayload.components[0].toJSON().components[0].custom_id, 'help:category');
+});
+
+test('canvas text help subcommand opens its command guide', async () => {
+  let replyPayload;
+  const fakeMessage = {
+    guildId: 'guild-1',
+    async reply(payload) {
+      replyPayload = payload;
+    },
+  };
+
+  await canvasCommand.text.execute(fakeMessage, ['help']);
+
+  assert.equal(replyPayload.embeds[0].toJSON().title, '📚 2. Canvas Commands');
 });
 
 /*

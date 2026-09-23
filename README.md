@@ -25,6 +25,10 @@ Create a Canvas access token from Canvas account settings, then put it in `CANVA
 
 ## Commands
 
+Use `/help` or `!help` for an interactive command list. Select a category from the dropdown,
+or open one directly with a command such as `!help canvas`. `!canvas` and `!canvas help`
+also open the Canvas command guide.
+
 Register slash commands:
 
 ```sh
