@@ -42,6 +42,15 @@ export function initializeSchema() {
       UNIQUE(subscription_id, assignment_id, days_before)
     );
 
+    CREATE TABLE IF NOT EXISTS personal_reminders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      message TEXT NOT NULL,
+      remind_at TEXT NOT NULL,
+      sent_at TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS announcements (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       canvas_announcement_id TEXT NOT NULL,
@@ -70,6 +79,7 @@ export function initializeSchema() {
 
     CREATE INDEX IF NOT EXISTS idx_assignments_course_id ON assignments(canvas_course_id);
     CREATE INDEX IF NOT EXISTS idx_reminders_due ON reminders(sent_at, remind_at);
+    CREATE INDEX IF NOT EXISTS idx_personal_reminders_due ON personal_reminders(sent_at, remind_at);
     CREATE INDEX IF NOT EXISTS idx_announcements_course_id ON announcements(canvas_course_id);
     CREATE INDEX IF NOT EXISTS idx_announcement_deliveries_pending ON announcement_deliveries(sent_at, created_at);
   `);

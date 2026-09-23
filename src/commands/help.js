@@ -25,6 +25,10 @@ const categories = [
           value: `\`${prefix}ping\` or \`/ping\`\nCheck the bot's response time.`,
         },
         {
+          name: 'Personal reminder',
+          value: `\`${prefix}remindme <duration> <message>\`\n\`/remindme duration:<duration> message:<message>\`\nSchedule a DM reminder. Example duration: \`3d2h5m\`.`,
+        },
+        {
           name: 'Commit',
           value: `\`${prefix}commit\` or \`/commit\`\nCheck whether the running bot is up to date with GitHub. Aliases: \`${prefix}version\`, \`${prefix}sha\`.`,
         },

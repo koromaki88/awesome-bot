@@ -1,9 +1,12 @@
 import { getDueReminders, markReminderSent } from '../db/assignments.js';
+import { getDuePersonalReminders, markPersonalReminderSent } from '../db/personalReminders.js';
 import { sendPendingAnnouncements } from '../canvas/announcementDelivery.js';
 import { syncSubscribedCourses } from '../canvas/syncAssignments.js';
 
 const reminderCheckMs = 10 * 60 * 1000;
+const personalReminderCheckMs = 30 * 1000;
 const canvasSyncMs = 6 * 60 * 60 * 1000;
+let personalReminderCheckRunning = false;
 
 function hasCanvasConfig() {
   return Boolean(process.env.CANVAS_BASE_URL && process.env.CANVAS_ACCESS_TOKEN);
@@ -34,6 +37,31 @@ async function sendDueReminders(client) {
   }
 }
 
+export function formatPersonalReminder(message) {
+  return `**Reminder**: ${message}`;
+}
+
+export async function sendDuePersonalReminders(client) {
+  if (personalReminderCheckRunning) return;
+  personalReminderCheckRunning = true;
+
+  try {
+    const reminders = getDuePersonalReminders();
+
+    for (const reminder of reminders) {
+      try {
+        const user = await client.users.fetch(reminder.user_id);
+        await user.send(formatPersonalReminder(reminder.message));
+        markPersonalReminderSent(reminder.id);
+      } catch (error) {
+        console.error(`Could not send personal reminder ${reminder.id}:`, error);
+      }
+    }
+  } finally {
+    personalReminderCheckRunning = false;
+  }
+}
+
 async function runCanvasSync(client) {
   if (!hasCanvasConfig()) {
     console.warn('Canvas sync skipped: missing CANVAS_BASE_URL or CANVAS_ACCESS_TOKEN.');
@@ -51,6 +79,7 @@ async function runCanvasSync(client) {
 export function startReminderScheduler(client) {
   runCanvasSync(client).catch((error) => console.error('Canvas sync failed:', error));
   sendDueReminders(client).catch((error) => console.error('Reminder check failed:', error));
+  sendDuePersonalReminders(client).catch((error) => console.error('Personal reminder check failed:', error));
 
   setInterval(() => {
     runCanvasSync(client).catch((error) => console.error('Canvas sync failed:', error));
@@ -59,4 +88,8 @@ export function startReminderScheduler(client) {
   setInterval(() => {
     sendDueReminders(client).catch((error) => console.error('Reminder check failed:', error));
   }, reminderCheckMs);
+
+  setInterval(() => {
+    sendDuePersonalReminders(client).catch((error) => console.error('Personal reminder check failed:', error));
+  }, personalReminderCheckMs);
 }
