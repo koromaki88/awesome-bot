@@ -73,6 +73,8 @@ export function createMissingRemindersForSubscription(subscription) {
 }
 
 export function getDueReminders(now = new Date()) {
+  const nowIso = now.toISOString();
+
   return db.prepare(`
     SELECT
       reminders.id,
@@ -88,11 +90,12 @@ export function getDueReminders(now = new Date()) {
     JOIN course_subscriptions ON course_subscriptions.id = reminders.subscription_id
     JOIN assignments ON assignments.id = reminders.assignment_id
     WHERE reminders.sent_at IS NULL
-      AND reminders.remind_at <= ?
+      AND datetime(reminders.remind_at) <= datetime(?)
       AND assignments.due_at IS NOT NULL
+      AND datetime(assignments.due_at) > datetime(?)
       AND COALESCE(assignments.workflow_state, '') != 'deleted'
     ORDER BY reminders.remind_at ASC
-  `).all(now.toISOString());
+  `).all(nowIso, nowIso);
 }
 
 export function markReminderSent(reminderId) {
