@@ -41,6 +41,20 @@ test('canvas preview uses position option', () => {
   assert.deepEqual(optionNames, ['course_id', 'position']);
 });
 
+test('preview, assignments, and asm allow omitted courses without affecting watch and unwatch', () => {
+  const subcommands = canvasCommand.slash.data.toJSON().options;
+  for (const name of ['preview', 'assignments', 'asm']) {
+    const courseOption = subcommands.find((subcommand) => subcommand.name === name)
+      .options.find((option) => option.name === 'course_id');
+    assert.equal(courseOption.required, false);
+  }
+  for (const name of ['watch', 'unwatch']) {
+    const courseOption = subcommands.find((subcommand) => subcommand.name === name)
+      .options.find((option) => option.name === 'course_id');
+    assert.equal(courseOption.required, true);
+  }
+});
+
 /*
  * Verifies the Canvas command is protected as a privileged command.
  */

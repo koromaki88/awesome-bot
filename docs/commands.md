@@ -29,10 +29,22 @@ members.** Other Canvas commands require an ID in `APPROVED_USER_IDS`.
 | `!canvas unwatch <course_id> [#channel]` | Stop watching a course in a channel. |
 | `!canvas watchlist` | List courses watched in the server. |
 | `!canvas sync` | Sync watched courses now. |
-| `!canvas preview <course ID or name> [position]` | Preview one of the 10 most recent course announcements. |
-| `!canvas assignments <course ID or name>` | List all assignments and due dates, oldest first. |
+| `!canvas preview [course ID or name] [position]` | Preview one of the 10 most recent course announcements. |
+| `!canvas assignments [course ID or name]` | List all assignments and due dates, oldest first. |
 
 For watch and unwatch, omitting `#channel` uses the current channel.
+
+For preview, assignments, and its `asm` alias, omitting the course uses the **only
+course watched in the current channel**. This works for both text and slash commands:
+
+```text
+!canvas preview
+!canvas assignments
+!canvas asm
+```
+
+If the channel has no watched courses or multiple watched courses, specify a course
+name or ID instead. Explicit IDs still work without a channel subscription.
 
 ### Preview by name
 
@@ -50,6 +62,8 @@ partial names and typos. Ambiguous matches ask for a more specific name or cours
 The optional position defaults to `1` (newest) and accepts values from `1` to `10`.
 Quote names ending in a number so the number is not interpreted as a position.
 The slash command's `course_id` option accepts either an ID or a name as well.
+It can also be omitted while setting `position` (for example, `/canvas preview position:2`).
+For text commands, a lone number remains a course ID, not an announcement position.
 
 ### Announcement layout
 

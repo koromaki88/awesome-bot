@@ -30,6 +30,7 @@ test('preview position rejects invalid values', () => {
 });
 
 test('text preview arguments accept IDs, multi-word names, and optional positions', () => {
+  assert.deepEqual(parseTextPreviewArgs([]), { courseInput: '', position: 1 });
   assert.deepEqual(parseTextPreviewArgs(['123']), { courseInput: '123', position: 1 });
   assert.deepEqual(parseTextPreviewArgs(['123', '2']), { courseInput: '123', position: 2 });
   assert.deepEqual(parseTextPreviewArgs(['operating', 'systems']), { courseInput: 'operating systems', position: 1 });
@@ -38,8 +39,8 @@ test('text preview arguments accept IDs, multi-word names, and optional position
   assert.deepEqual(parseTextPreviewArgs(["'Biology", "101'"]), { courseInput: 'Biology 101', position: 1 });
 });
 
-test('text preview arguments reject missing courses, invalid positions, and broken quotes', () => {
-  for (const args of [[], ['123', '11'], ['operating', 'systems', '0'], ['123', 'oops'], ['"Biology', '101']]) {
+test('text preview arguments reject invalid positions and broken quotes', () => {
+  for (const args of [['123', '11'], ['operating', 'systems', '0'], ['123', 'oops'], ['"Biology', '101']]) {
     assert.equal(parseTextPreviewArgs(args), null);
   }
 });
@@ -159,13 +160,35 @@ test('text and slash preview resolve a fuzzy course name and preserve announceme
     editReply: async (content) => confirmations.push(content),
   });
 
-  assert.deepEqual(confirmations, ['Previewed announcement 2.', 'Previewed announcement 2.']);
-  assert.equal(sent.length, 2);
-  for (const payload of sent) {
+  await canvasCommand.text.execute({
+    guildId: 'guild-1', channelId: 'channel-1', channel,
+    reply: async () => ({ edit: async (content) => confirmations.push(content) }),
+  }, ['preview']);
+  await canvasCommand.slash.execute({
+    guildId: 'guild-1', channelId: 'channel-1', channel,
+    options: {
+      getSubcommand: () => 'preview',
+      getString: (name, required) => {
+        assert.notEqual(required, true);
+        return null;
+      },
+      getInteger: () => 2,
+    },
+    deferReply: async () => {},
+    editReply: async (content) => confirmations.push(content),
+  });
+
+  assert.deepEqual(confirmations, [
+    'Previewed announcement 2.', 'Previewed announcement 2.',
+    'Previewed announcement 1.', 'Previewed announcement 2.',
+  ]);
+  assert.equal(sent.length, 4);
+  for (const payload of [sent[0], sent[1], sent[3]]) {
     const text = payload.components[0].components.map((component) => component.content ?? '').join('\n');
     assert.match(text, /## Older/);
     assert.match(text, /Second newest/);
   }
+  assert.match(sent[2].components[0].components[0].content, /## Newest/);
 });
 
 test('unknown course names return a useful error without calling Canvas', async (t) => {
@@ -180,4 +203,33 @@ test('unknown course names return a useful error without calling Canvas', async 
 
   assert.equal(replies.length, 2);
   for (const payload of replies) assert.match(payload.content, /No matching Canvas course is watched in this channel/);
+});
+
+test('all default-course commands ask for clarification in empty or multi-course channels', async (t) => {
+  t.mock.method(globalThis, 'fetch', async () => assert.fail('No Canvas request expected'));
+  for (const canvasCourseId of ['100', '200']) {
+    upsertCourseSubscription({
+      guildId: 'defaults-guild', channelId: 'multiple-courses', canvasCourseId,
+      courseName: `Course ${canvasCourseId}`,
+    });
+  }
+  for (const channelId of ['empty', 'multiple-courses']) {
+    for (const subcommand of ['preview', 'assignments', 'asm']) {
+      const replies = [];
+      const context = {
+        guildId: 'defaults-guild', channelId,
+        reply: async (payload) => replies.push(payload),
+      };
+      await canvasCommand.text.execute(context, [subcommand]);
+      await canvasCommand.slash.execute({
+        ...context,
+        options: { getSubcommand: () => subcommand, getString: () => null },
+      });
+      assert.equal(replies.length, 2);
+      for (const payload of replies) {
+        assert.match(payload.content, channelId === 'empty' ? /No Canvas courses/ : /Multiple Canvas courses/);
+        assert.deepEqual(payload.allowedMentions, { parse: [] });
+      }
+    }
+  }
 });

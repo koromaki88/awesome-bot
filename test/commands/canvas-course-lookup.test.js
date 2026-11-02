@@ -62,3 +62,33 @@ test('ambiguous resolution asks for a specific name or course ID', () => {
   assert.match(result.error, /55/);
   assert.equal(result.courseId, undefined);
 });
+
+test('omitted courses use the sole subscription in the current channel and guild', () => {
+  for (const course of [
+    { channelId: 'default-course', guildId: 'guild-1', canvasCourseId: '66', courseName: null },
+    { channelId: 'different-channel', guildId: 'guild-1', canvasCourseId: '77', courseName: 'Biology' },
+    { channelId: 'default-course', guildId: 'guild-2', canvasCourseId: '88', courseName: 'Chemistry' },
+  ]) upsertCourseSubscription(course);
+
+  const context = { guildId: 'guild-1', channelId: 'default-course' };
+  for (const input of [undefined, null, '', '  ']) {
+    assert.deepEqual(resolveCanvasCourse(input, context), { courseId: '66' });
+  }
+  assert.deepEqual(resolveCanvasCourse('999', context), { courseId: '999' });
+  assert.match(resolveCanvasCourse('unrelated name', context).error, /No matching/);
+});
+
+test('omitted courses require clarification if the channel has zero or multiple subscriptions', () => {
+  for (const canvasCourseId of ['44', '55']) {
+    upsertCourseSubscription({
+      guildId: 'guild-1', channelId: 'multiple-defaults', canvasCourseId, courseName: 'Biology',
+    });
+  }
+  const empty = resolveCanvasCourse(undefined, { guildId: 'guild-1', channelId: 'empty' });
+  assert.match(empty.error, /No Canvas courses are watched in this channel/);
+  const multiple = resolveCanvasCourse(undefined, { guildId: 'guild-1', channelId: 'multiple-defaults' });
+  assert.match(multiple.error, /Multiple Canvas courses/);
+  assert.match(multiple.error, /44/);
+  assert.match(multiple.error, /55/);
+  assert.equal(multiple.courseId, undefined);
+});

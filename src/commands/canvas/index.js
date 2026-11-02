@@ -3,7 +3,7 @@ import { ChannelType, SlashCommandBuilder } from 'discord.js';
 import { sendPendingAnnouncements } from '../../canvas/announcementDelivery.js';
 import { permissionLevels } from '../../permissions.js';
 import { createHelpPayload } from '../help.js';
-import { assignmentsUsageMessage, getAssignmentMessages } from './assignments.js';
+import { getAssignmentMessages } from './assignments.js';
 import { resolveCanvasCourse } from './courseLookup.js';
 import { formatPreviewResult, parseTextPreviewArgs, previewCourseAnnouncement, previewUsageMessage } from './preview.js';
 import { formatSyncResult, syncGuildCanvasCourses } from './sync.js';
@@ -63,7 +63,7 @@ async function handleSlashSync(interaction) {
 }
 
 async function handleSlashPreview(interaction) {
-  const { courseId, error } = resolveCanvasCourse(interaction.options.getString('course_id', true), {
+  const { courseId, error } = resolveCanvasCourse(interaction.options.getString('course_id'), {
     guildId: interaction.guildId,
     channelId: interaction.channelId ?? interaction.channel?.id,
   });
@@ -86,7 +86,7 @@ async function handleSlashPreview(interaction) {
 }
 
 async function handleSlashAssignments(interaction) {
-  const { courseId, error } = resolveCanvasCourse(interaction.options.getString('course_id', true), {
+  const { courseId, error } = resolveCanvasCourse(interaction.options.getString('course_id'), {
     guildId: interaction.guildId,
     channelId: interaction.channelId ?? interaction.channel?.id,
   });
@@ -128,10 +128,6 @@ async function handleTextWatch(message, args) {
 async function handleTextAssignments(message, args) {
   const courseInput = args.join(' ').trim()
     .replace(/^(?:"(.*)"|'(.*)')$/, (_, doubleQuoted, singleQuoted) => doubleQuoted ?? singleQuoted);
-  if (!courseInput) {
-    await message.reply(assignmentsUsageMessage);
-    return;
-  }
   const { courseId, error } = resolveCanvasCourse(courseInput, {
     guildId: message.guildId,
     channelId: message.channelId ?? message.channel?.id,
@@ -285,8 +281,8 @@ export const canvasCommand = {
           .addStringOption((option) =>
             option
               .setName('course_id')
-              .setDescription('Course ID, or the closest watched course name in this channel.')
-              .setRequired(true),
+              .setDescription('Course ID or name. Defaults to the only course watched in this channel.')
+              .setRequired(false),
           )
           .addIntegerOption((option) =>
             option
@@ -304,8 +300,8 @@ export const canvasCommand = {
           .addStringOption((option) =>
             option
               .setName('course_id')
-              .setDescription('Course ID, or the closest watched course name in this channel.')
-              .setRequired(true),
+              .setDescription('Course ID or name. Defaults to the only course watched in this channel.')
+              .setRequired(false),
           ),
       )
       .addSubcommand((subcommand) =>
@@ -315,8 +311,8 @@ export const canvasCommand = {
           .addStringOption((option) =>
             option
               .setName('course_id')
-              .setDescription('Course ID, or the closest watched course name in this channel.')
-              .setRequired(true),
+              .setDescription('Course ID or name. Defaults to the only course watched in this channel.')
+              .setRequired(false),
           ),
       ),
 

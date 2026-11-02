@@ -56,10 +56,20 @@ export function findClosestCourses(input, subscriptions) {
 }
 
 export function resolveCanvasCourse(input, { guildId, channelId }) {
-  const courseInput = input.trim();
+  const courseInput = input?.trim() ?? '';
   if (/^\d+$/.test(courseInput)) return { courseId: courseInput };
 
   const subscriptions = getCourseSubscriptionsByChannel(guildId, channelId);
+  if (!courseInput) {
+    if (subscriptions.length === 1) return { courseId: subscriptions[0].canvas_course_id };
+    if (!subscriptions.length) {
+      return { error: 'No Canvas courses are watched in this channel. Specify a course ID or watch a course here first.' };
+    }
+    const choices = subscriptions.slice(0, 5)
+      .map((course) => `- ${course.course_name ?? 'Unnamed course'} (${course.canvas_course_id})`);
+    return { error: `Multiple Canvas courses are watched in this channel. Specify a course name or ID:\n${choices.join('\n')}` };
+  }
+
   const matches = findClosestCourses(courseInput, subscriptions);
   if (!matches.length) {
     return { error: 'No matching Canvas course is watched in this channel. Try a closer name or use a course ID.' };

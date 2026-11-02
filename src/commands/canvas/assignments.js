@@ -2,8 +2,6 @@ import { escapeMarkdown } from 'discord.js';
 
 import { fetchCanvasAssignments, fetchCanvasCourse } from '../../canvas/client.js';
 
-export const assignmentsUsageMessage = 'Usage: `!canvas assignments <course ID or name>`';
-
 function dueTimestamp(assignment) {
   const timestamp = assignment.due_at ? Date.parse(assignment.due_at) : NaN;
   return Number.isNaN(timestamp) ? Infinity : timestamp;

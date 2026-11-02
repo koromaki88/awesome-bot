@@ -106,8 +106,25 @@ test('text and slash assignments fetch every Canvas page and accept course names
     options: { getSubcommand: () => 'assignments', getString: () => '123' },
     deferReply: async () => {}, editReply: async (payload) => sent.push(payload),
   });
-  assert.equal(requests.length, 6);
-  assert.equal(sent.length, 2);
+  for (const subcommand of ['assignments', 'asm']) {
+    await canvasCommand.text.execute({
+      guildId: 'guild-1', channelId: 'channel-1',
+      reply: async () => ({ edit: async (payload) => sent.push(payload) }),
+    }, [subcommand]);
+    await canvasCommand.slash.execute({
+      guildId: 'guild-1', channelId: 'channel-1',
+      options: {
+        getSubcommand: () => subcommand,
+        getString: (name, required) => {
+          assert.notEqual(required, true);
+          return null;
+        },
+      },
+      deferReply: async () => {}, editReply: async (payload) => sent.push(payload),
+    });
+  }
+  assert.equal(requests.length, 18);
+  assert.equal(sent.length, 6);
   for (const message of sent) {
     const text = message.embeds[0].description;
     assert.ok(text.indexOf('Assignment 1') < text.indexOf('Assignment 2'));
@@ -153,6 +170,6 @@ test('missing or unmatched courses produce an error without Canvas requests', as
   await canvasCommand.text.execute(context, ['assignments']);
   await canvasCommand.text.execute(context, ['assignments', 'unknown', 'course']);
   await canvasCommand.slash.execute({ ...context, options: { getSubcommand: () => 'assignments', getString: () => 'unknown course' } });
-  assert.match(replies[0], /Usage:/);
+  assert.match(replies[0].content, /No Canvas courses are watched in this channel/);
   for (const reply of replies.slice(1)) assert.match(reply.content, /No matching Canvas course/);
 });

@@ -4,11 +4,11 @@ import { fetchCanvasAnnouncements, fetchCanvasCourse } from '../../canvas/client
 const defaultPreviewPosition = 1;
 const maxPreviewPosition = 10;
 
-export const previewUsageMessage = 'Usage: `!canvas preview <course ID or name> [position]` (quote names ending in a number)';
+export const previewUsageMessage = 'Usage: `!canvas preview [course ID or name] [position]` (quote names ending in a number)';
 
 export function parseTextPreviewArgs(args) {
   const input = args.join(' ').trim();
-  if (!input) return null;
+  if (!input) return { courseInput: '', position: defaultPreviewPosition };
 
   let courseInput;
   let positionInput;

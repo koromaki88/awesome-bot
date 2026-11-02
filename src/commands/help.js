@@ -61,11 +61,11 @@ const categories = [
         },
         {
           name: 'Preview announcements',
-          value: `\`${prefix}canvas preview <course ID or name> [position]\`\nPreview one of the 10 most recent announcements. Names match courses watched in this channel. Quote names ending in a number.`,
+          value: `\`${prefix}canvas preview [course ID or name] [position]\`\nPreview one of the 10 most recent announcements. Defaults to the only course watched in this channel. Quote names ending in a number.`,
         },
         {
           name: 'Assignments',
-          value: `\`${prefix}canvas assignments <course ID or name>\`\nList all assignments and due dates, oldest first. Names match courses watched in this channel. Alias: \`${prefix}canvas asm\`.`,
+          value: `\`${prefix}canvas assignments [course ID or name]\`\nList all assignments and due dates, oldest first. Defaults to the only course watched in this channel. Alias: \`${prefix}canvas asm\`.`,
         },
       ];
     },
