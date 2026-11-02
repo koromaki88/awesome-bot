@@ -19,6 +19,7 @@ test('announcement messages include title, text content, source link, and image 
     posted_at: '2026-08-11T12:00:00Z',
   });
   const embed = messages[0].embeds[0];
+  const imageEmbed = messages[1].embeds[0];
 
   assert.equal(embed.author.name, 'Announcement - Biology 101 (123)');
   assert.equal(embed.title, 'Lab update');
@@ -26,7 +27,8 @@ test('announcement messages include title, text content, source link, and image 
   assert.match(embed.description, /Bring goggles\./);
   assert.match(embed.description, /\[More info\]\(https:\/\/canvas\.example\.edu\/courses\/123\/pages\/info\)/);
   assert.match(embed.description, /\[Open in Canvas\]\(https:\/\/canvas\.example\.edu\/courses\/123\/discussion_topics\/456\)/);
-  assert.equal(embed.image.url, 'https://canvas.example.edu/images/lab.png');
+  assert.equal(embed.image, undefined);
+  assert.equal(imageEmbed.image.url, 'https://canvas.example.edu/images/lab.png');
   assert.equal(embed.timestamp, '2026-08-11T12:00:00.000Z');
 });
 
@@ -42,4 +44,20 @@ test('long announcement content is split across embeds', () => {
   assert.ok(messages.every((message) => message.embeds[0].description.length <= 3900));
   assert.equal(messages[0].embeds[0].author.name, 'Announcement - Biology 101 (123)');
   assert.match(messages[0].embeds[0].title, /Long update \(1\/\d+\)/);
+});
+
+test('inline images are separated from long text embeds to preserve text width', () => {
+  const messages = formatAnnouncementMessages({
+    canvas_course_id: '123',
+    course_name: 'Biology 101',
+    title: 'Long update with a narrow icon',
+    message: `<p>${'Long announcement content '.repeat(400)}</p><img src="/images/tiny-icon.png">`,
+  });
+  const textMessages = messages.filter((message) => message.embeds[0].description);
+  const imageMessages = messages.filter((message) => message.embeds[0].image);
+
+  assert.ok(textMessages.length > 1);
+  assert.ok(textMessages.every((message) => message.embeds[0].image === undefined));
+  assert.equal(imageMessages.length, 1);
+  assert.equal(imageMessages[0].embeds[0].image.url, 'https://canvas.example.edu/images/tiny-icon.png');
 });

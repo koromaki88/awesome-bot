@@ -94,12 +94,14 @@ export function formatAnnouncementMessages(announcement) {
         color: 0xe13f29,
         author: { name: author },
         timestamp,
-        image: index === 0 && imageUrls[0] ? { url: imageUrls[0] } : undefined,
       },
     ],
   }));
 
-  for (const imageUrl of imageUrls.slice(1)) {
+  // Keep Canvas images separate from text. Small inline images (icons, signatures,
+  // spacers, and similar content) can cause Discord to render the text embed at
+  // the image's narrow intrinsic width.
+  for (const imageUrl of imageUrls) {
     messages.push({ embeds: [{ title: 'Announcement image', image: { url: imageUrl }, color: 0xe13f29, author: { name: author } }] });
   }
 
