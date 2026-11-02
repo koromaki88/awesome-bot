@@ -18,6 +18,29 @@ are available in Discord.
 The help menu dropdown switches between General and Canvas commands. `!canvas` and
 `!canvas help` also open the Canvas guide, subject to Canvas command permissions.
 
+## Moderation
+
+`!purge <count>` deletes the last 1–100 messages **before the command** in the current
+channel. The `!purge` message is removed separately and does not count toward the total.
+Messages arriving after the command are not included.
+
+```text
+!purge 25
+```
+
+Only members with Discord's **Administrator** permission can use this command;
+being an approved Canvas user or having only Manage Messages is not sufficient.
+The bot needs **View Channel**, **Read Message History**, and **Manage Messages**
+in the target channel.
+
+Messages at least 14 days old are skipped because of Discord's bulk-delete limit.
+The command does not fetch additional messages to replace skipped ones. Deleted
+messages cannot be recovered.
+
+The slash equivalent is `/purge count:25`. Successful purges are silent: the text
+command posts no confirmation, and the slash command removes its temporary private
+acknowledgement. Invalid input, permission problems, and failures still report errors.
+
 ## Canvas
 
 Canvas commands are server-only. **Watchlist, preview, and assignments are available to all server

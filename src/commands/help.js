@@ -32,6 +32,10 @@ const categories = [
           name: 'Commit',
           value: `\`${prefix}commit\`\nCheck whether the running bot is up to date with GitHub. Aliases: \`${prefix}version\`, \`${prefix}sha\`.`,
         },
+        {
+          name: 'Purge (server admins)',
+          value: `\`${prefix}purge <count>\`\nDelete 1–100 recent messages, excluding the command from the count. Messages at least 14 days old are skipped.`,
+        },
       ];
     },
   },
