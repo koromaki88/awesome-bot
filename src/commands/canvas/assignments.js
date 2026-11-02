@@ -23,12 +23,11 @@ export function formatAssignmentMessages(course, assignments) {
   const sorted = assignments.filter((assignment) => assignment.workflow_state !== 'deleted')
     .sort((left, right) => dueTimestamp(left) - dueTimestamp(right)
       || (left.name ?? '').localeCompare(right.name ?? ''));
-  const introduction = 'Due dates, oldest first. Assignments without due dates are listed last.\n\n';
   const pages = [];
   let page = '';
   for (const assignment of sorted) {
     const line = assignmentLine(assignment);
-    if (page && introduction.length + page.length + line.length + 1 > 3800) {
+    if (page && page.length + line.length + 1 > 3800) {
       pages.push(page);
       page = '';
     }
@@ -42,7 +41,7 @@ export function formatAssignmentMessages(course, assignments) {
     allowedMentions: { parse: [] },
     embeds: [{
       title: `Assignments — ${courseName}`.slice(0, 240),
-      description: `${introduction}${body}`,
+      description: body,
       color: 0xe13f29,
       footer: { text: `Course ${course.id} • Page ${index + 1}/${pages.length} • ${sorted.length} assignment(s)` },
     }],

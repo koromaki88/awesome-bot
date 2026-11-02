@@ -37,6 +37,7 @@ test('assignment lists sort due dates oldest first, including past assignments',
   const embed = messages[0].embeds[0];
   assert.equal(messages.length, 1);
   assert.equal(embed.title, 'Assignments — Operating Systems');
+  assert.ok(embed.description.startsWith('- [Assignment 1]'));
   assert.ok(embed.description.indexOf('Assignment 1') < embed.description.indexOf('Assignment 2'));
   assert.ok(embed.description.indexOf('Assignment 2') < embed.description.indexOf('Assignment 3'));
   assert.match(embed.description, /\[Assignment 1\]\(https:\/\/canvas\.example\.edu\/assignments\/1\)/);
