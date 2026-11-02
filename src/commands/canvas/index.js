@@ -3,7 +3,8 @@ import { ChannelType, SlashCommandBuilder } from 'discord.js';
 import { sendPendingAnnouncements } from '../../canvas/announcementDelivery.js';
 import { permissionLevels } from '../../permissions.js';
 import { createHelpPayload } from '../help.js';
-import { formatPreviewResult, parsePreviewPosition, previewCourseAnnouncement, previewUsageMessage } from './preview.js';
+import { resolvePreviewCourse } from './courseLookup.js';
+import { formatPreviewResult, parseTextPreviewArgs, previewCourseAnnouncement, previewUsageMessage } from './preview.js';
 import { formatSyncResult, syncGuildCanvasCourses } from './sync.js';
 import { canvasServerOnlyMessage, canvasUsageMessage, requireCanvasConfig, resolveTextChannel } from './shared.js';
 import { getWatchlistMessage } from './watchlist.js';
@@ -61,10 +62,18 @@ async function handleSlashSync(interaction) {
 }
 
 async function handleSlashPreview(interaction) {
+  const { courseId, error } = resolvePreviewCourse(interaction.options.getString('course_id', true), {
+    guildId: interaction.guildId,
+    channelId: interaction.channelId ?? interaction.channel?.id,
+  });
+  if (error) {
+    await interaction.reply({ content: error, ephemeral: true, allowedMentions: { parse: [] } });
+    return;
+  }
+
   requireCanvasConfig();
   await interaction.deferReply({ ephemeral: true });
 
-  const courseId = interaction.options.getString('course_id', true);
   const position = interaction.options.getInteger('position') ?? 1;
   const sent = await previewCourseAnnouncement({
     courseId,
@@ -139,10 +148,19 @@ async function handleTextSync(message) {
 }
 
 async function handleTextPreview(message, args) {
-  const [courseId, positionInput] = args;
-  const position = parsePreviewPosition(positionInput);
-  if (!courseId || position === null) {
+  const parsed = parseTextPreviewArgs(args);
+  if (!parsed) {
     await message.reply(previewUsageMessage);
+    return;
+  }
+
+  const { courseInput, position } = parsed;
+  const { courseId, error } = resolvePreviewCourse(courseInput, {
+    guildId: message.guildId,
+    channelId: message.channelId ?? message.channel?.id,
+  });
+  if (error) {
+    await message.reply({ content: error, allowedMentions: { parse: [] } });
     return;
   }
 
@@ -159,7 +177,10 @@ async function handleTextPreview(message, args) {
 }
 
 export const canvasCommand = {
-  permissions: { level: permissionLevels.privilegedUser },
+  permissions: {
+    level: permissionLevels.privilegedUser,
+    subcommands: { watchlist: permissionLevels.member, preview: permissionLevels.member },
+  },
 
   slash: {
     data: new SlashCommandBuilder()
@@ -218,7 +239,7 @@ export const canvasCommand = {
           .addStringOption((option) =>
             option
               .setName('course_id')
-              .setDescription('The Canvas course ID to preview announcements from.')
+              .setDescription('Course ID, or the closest watched course name in this channel.')
               .setRequired(true),
           )
           .addIntegerOption((option) =>

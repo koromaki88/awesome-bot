@@ -36,6 +36,15 @@ export function getCourseSubscriptionsByCourse(canvasCourseId) {
   `).all(canvasCourseId);
 }
 
+export function getCourseSubscriptionsByChannel(guildId, channelId) {
+  return db.prepare(`
+    SELECT *
+    FROM course_subscriptions
+    WHERE guild_id = ? AND channel_id = ?
+    ORDER BY course_name COLLATE NOCASE ASC, canvas_course_id ASC
+  `).all(guildId, channelId);
+}
+
 export function removeCourseSubscription({ guildId, channelId, canvasCourseId }) {
   return db.prepare(`
     DELETE FROM course_subscriptions

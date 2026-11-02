@@ -40,7 +40,7 @@ const categories = [
     number: 2,
     name: 'Canvas',
     emoji: '📚',
-    description: 'Manage Canvas course reminders and announcements. These commands are limited to approved users.',
+    description: 'Watchlist and preview are available to all server members. Other Canvas commands require approved-user access.',
     commands(prefix) {
       return [
         {
@@ -61,7 +61,7 @@ const categories = [
         },
         {
           name: 'Preview announcements',
-          value: `\`${prefix}canvas preview <course_id> [position]\`\nPreview one of the 10 most recent course announcements.`,
+          value: `\`${prefix}canvas preview <course ID or name> [position]\`\nPreview one of the 10 most recent announcements. Names match courses watched in this channel. Quote names ending in a number.`,
         },
       ];
     },

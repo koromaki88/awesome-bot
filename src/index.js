@@ -92,7 +92,7 @@ client.on('messageCreate', async (message) => {
   if (!command) return;
 
   try {
-    if (!(await enforceTextPermission(command, message))) return;
+    if (!(await enforceTextPermission(command, message, args))) return;
 
     await command.text.execute(message, args);
   } catch (error) {

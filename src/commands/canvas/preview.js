@@ -4,7 +4,31 @@ import { fetchCanvasAnnouncements, fetchCanvasCourse } from '../../canvas/client
 const defaultPreviewPosition = 1;
 const maxPreviewPosition = 10;
 
-export const previewUsageMessage = 'Usage: `!canvas preview <canvasCourseId> [position]`';
+export const previewUsageMessage = 'Usage: `!canvas preview <course ID or name> [position]` (quote names ending in a number)';
+
+export function parseTextPreviewArgs(args) {
+  const input = args.join(' ').trim();
+  if (!input) return null;
+
+  let courseInput;
+  let positionInput;
+  if (input.startsWith('"') || input.startsWith("'")) {
+    const quoted = input.match(/^(?:"([^"]+)"|'([^']+)')(?:\s+(\S+))?$/);
+    if (!quoted) return null;
+    courseInput = (quoted[1] ?? quoted[2]).trim();
+    positionInput = quoted[3];
+  } else if (/^\d+$/.test(args[0])) {
+    if (args.length > 2) return null;
+    [courseInput, positionInput] = args;
+  } else {
+    const parts = [...args];
+    if (parts.length > 1 && /^[+-]?\d+(?:\.\d+)?$/.test(parts.at(-1))) positionInput = parts.pop();
+    courseInput = parts.join(' ');
+  }
+
+  const position = parsePreviewPosition(positionInput);
+  return courseInput && position !== null ? { courseInput, position } : null;
+}
 
 export function parsePreviewPosition(input) {
   if (input === undefined || input === null || input === '') return defaultPreviewPosition;

@@ -29,6 +29,16 @@ Use `/help` or `!help` for an interactive command list. Select a category from t
 or open one directly with a command such as `!help canvas`. `!canvas` and `!canvas help`
 also open the Canvas command guide.
 
+`!canvas watchlist` and `!canvas preview` (and their slash equivalents) are available to all server members.
+Other Canvas commands remain restricted to approved users.
+
+Preview accepts a course ID or the closest matching course name watched in the current
+channel (case-insensitive, with partial names and typo tolerance). For example,
+`!canvas preview operating systems 2` previews the second newest announcement. Quote
+names ending in a number: `!canvas preview "Biology 101" 2`. Ambiguous matches ask for
+a more specific name or course ID. The slash command's `course_id` option accepts
+either an ID or a name as well.
+
 Canvas announcements use Components V2 cards to keep text and images together without
 narrowing the text around small images. Long announcements and galleries exceeding
 10 images continue in additional cards.

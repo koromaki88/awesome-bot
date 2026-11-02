@@ -40,7 +40,10 @@ function isAllowed({ level, userId, permissions }) {
 }
 
 export async function enforceSlashPermission(command, interaction) {
-  const level = command.permissions?.level;
+  const subcommand = command.permissions?.subcommands
+    ? interaction.options.getSubcommand(false)
+    : undefined;
+  const level = command.permissions?.subcommands?.[subcommand] ?? command.permissions?.level;
 
   if (isAllowed({ level, userId: interaction.user.id, permissions: interaction.memberPermissions })) return true;
 
@@ -48,8 +51,9 @@ export async function enforceSlashPermission(command, interaction) {
   return false;
 }
 
-export async function enforceTextPermission(command, message) {
-  const level = command.permissions?.level;
+export async function enforceTextPermission(command, message, args = []) {
+  const subcommand = args[0]?.toLowerCase();
+  const level = command.permissions?.subcommands?.[subcommand] ?? command.permissions?.level;
 
   if (isAllowed({ level, userId: message.author.id, permissions: message.member?.permissions })) return true;
 
