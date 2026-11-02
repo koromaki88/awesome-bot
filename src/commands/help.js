@@ -18,19 +18,19 @@ const categories = [
       return [
         {
           name: 'Help',
-          value: `\`${prefix}help [category]\` or \`/help [category]\`\nOpen this menu or jump directly to a category.`,
+          value: `\`${prefix}help [category]\`\nOpen this menu or jump directly to a category.`,
         },
         {
           name: 'Ping',
-          value: `\`${prefix}ping\` or \`/ping\`\nCheck the bot's response time.`,
+          value: `\`${prefix}ping\`\nCheck the bot's response time.`,
         },
         {
           name: 'Personal reminder',
-          value: `\`${prefix}remindme <duration> <message>\`\n\`/remindme duration:<duration> message:<message>\`\nSchedule a DM reminder. Units: \`mo\` months, \`w\` weeks, \`d\` days, \`h\` hours, \`m\` minutes, \`s\` seconds.`,
+          value: `\`${prefix}remindme <duration> <message>\`\nSchedule a DM reminder. Units: \`mo\` months, \`w\` weeks, \`d\` days, \`h\` hours, \`m\` minutes, \`s\` seconds.`,
         },
         {
           name: 'Commit',
-          value: `\`${prefix}commit\` or \`/commit\`\nCheck whether the running bot is up to date with GitHub. Aliases: \`${prefix}version\`, \`${prefix}sha\`.`,
+          value: `\`${prefix}commit\`\nCheck whether the running bot is up to date with GitHub. Aliases: \`${prefix}version\`, \`${prefix}sha\`.`,
         },
       ];
     },
@@ -45,23 +45,23 @@ const categories = [
       return [
         {
           name: 'Watch a course',
-          value: `\`${prefix}canvas watch <course_id> [#channel]\`\n\`/canvas watch course_id:<id> [channel]\`\nSend assignment reminders for a course to a channel.`,
+          value: `\`${prefix}canvas watch <course_id> [#channel]\`\nSend assignment reminders for a course to a channel.`,
         },
         {
           name: 'Stop watching',
-          value: `\`${prefix}canvas unwatch <course_id> [#channel]\`\n\`/canvas unwatch course_id:<id> [channel]\`\nStop reminders for a course in a channel.`,
+          value: `\`${prefix}canvas unwatch <course_id> [#channel]\`\nStop reminders for a course in a channel.`,
         },
         {
           name: 'Watchlist',
-          value: `\`${prefix}canvas watchlist\` or \`/canvas watchlist\`\nList the Canvas courses watched in this server.`,
+          value: `\`${prefix}canvas watchlist\`\nList the Canvas courses watched in this server.`,
         },
         {
           name: 'Sync',
-          value: `\`${prefix}canvas sync\` or \`/canvas sync\`\nSync assignments for watched courses now.`,
+          value: `\`${prefix}canvas sync\`\nSync assignments for watched courses now.`,
         },
         {
           name: 'Preview announcements',
-          value: `\`${prefix}canvas preview <course_id> [position]\`\n\`/canvas preview course_id:<id> [position]\`\nPreview one of the 10 most recent course announcements.`,
+          value: `\`${prefix}canvas preview <course_id> [position]\`\nPreview one of the 10 most recent course announcements.`,
         },
       ];
     },
