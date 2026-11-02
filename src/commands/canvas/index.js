@@ -3,7 +3,8 @@ import { ChannelType, SlashCommandBuilder } from 'discord.js';
 import { sendPendingAnnouncements } from '../../canvas/announcementDelivery.js';
 import { permissionLevels } from '../../permissions.js';
 import { createHelpPayload } from '../help.js';
-import { resolvePreviewCourse } from './courseLookup.js';
+import { assignmentsUsageMessage, getAssignmentMessages } from './assignments.js';
+import { resolveCanvasCourse } from './courseLookup.js';
 import { formatPreviewResult, parseTextPreviewArgs, previewCourseAnnouncement, previewUsageMessage } from './preview.js';
 import { formatSyncResult, syncGuildCanvasCourses } from './sync.js';
 import { canvasServerOnlyMessage, canvasUsageMessage, requireCanvasConfig, resolveTextChannel } from './shared.js';
@@ -62,7 +63,7 @@ async function handleSlashSync(interaction) {
 }
 
 async function handleSlashPreview(interaction) {
-  const { courseId, error } = resolvePreviewCourse(interaction.options.getString('course_id', true), {
+  const { courseId, error } = resolveCanvasCourse(interaction.options.getString('course_id', true), {
     guildId: interaction.guildId,
     channelId: interaction.channelId ?? interaction.channel?.id,
   });
@@ -82,6 +83,23 @@ async function handleSlashPreview(interaction) {
   });
 
   await interaction.editReply(formatPreviewResult(sent, position));
+}
+
+async function handleSlashAssignments(interaction) {
+  const { courseId, error } = resolveCanvasCourse(interaction.options.getString('course_id', true), {
+    guildId: interaction.guildId,
+    channelId: interaction.channelId ?? interaction.channel?.id,
+  });
+  if (error) {
+    await interaction.reply({ content: error, ephemeral: true, allowedMentions: { parse: [] } });
+    return;
+  }
+
+  requireCanvasConfig();
+  await interaction.deferReply({ ephemeral: true });
+  const [first, ...remaining] = await getAssignmentMessages(courseId);
+  await interaction.editReply(first);
+  for (const payload of remaining) await interaction.followUp({ ...payload, ephemeral: true });
 }
 
 async function handleTextWatch(message, args) {
@@ -105,6 +123,29 @@ async function handleTextWatch(message, args) {
   });
 
   await reply.edit(formatWatchCourseResponse(subscription, assignmentCount));
+}
+
+async function handleTextAssignments(message, args) {
+  const courseInput = args.join(' ').trim()
+    .replace(/^(?:"(.*)"|'(.*)')$/, (_, doubleQuoted, singleQuoted) => doubleQuoted ?? singleQuoted);
+  if (!courseInput) {
+    await message.reply(assignmentsUsageMessage);
+    return;
+  }
+  const { courseId, error } = resolveCanvasCourse(courseInput, {
+    guildId: message.guildId,
+    channelId: message.channelId ?? message.channel?.id,
+  });
+  if (error) {
+    await message.reply({ content: error, allowedMentions: { parse: [] } });
+    return;
+  }
+
+  requireCanvasConfig();
+  const reply = await message.reply(`Fetching Canvas assignments for course ${courseId}...`);
+  const [first, ...remaining] = await getAssignmentMessages(courseId);
+  await reply.edit({ ...first, content: null });
+  for (const payload of remaining) await message.channel.send(payload);
 }
 
 async function handleTextUnwatch(message, args) {
@@ -155,7 +196,7 @@ async function handleTextPreview(message, args) {
   }
 
   const { courseInput, position } = parsed;
-  const { courseId, error } = resolvePreviewCourse(courseInput, {
+  const { courseId, error } = resolveCanvasCourse(courseInput, {
     guildId: message.guildId,
     channelId: message.channelId ?? message.channel?.id,
   });
@@ -179,7 +220,12 @@ async function handleTextPreview(message, args) {
 export const canvasCommand = {
   permissions: {
     level: permissionLevels.privilegedUser,
-    subcommands: { watchlist: permissionLevels.member, preview: permissionLevels.member },
+    subcommands: {
+      watchlist: permissionLevels.member,
+      preview: permissionLevels.member,
+      assignments: permissionLevels.member,
+      asm: permissionLevels.member,
+    },
   },
 
   slash: {
@@ -250,6 +296,28 @@ export const canvasCommand = {
               .setMaxValue(10)
               .setRequired(false),
           ),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName('assignments')
+          .setDescription('List all assignments and due dates for a course, oldest first.')
+          .addStringOption((option) =>
+            option
+              .setName('course_id')
+              .setDescription('Course ID, or the closest watched course name in this channel.')
+              .setRequired(true),
+          ),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName('asm')
+          .setDescription('Alias for assignments: list assignments and due dates, oldest first.')
+          .addStringOption((option) =>
+            option
+              .setName('course_id')
+              .setDescription('Course ID, or the closest watched course name in this channel.')
+              .setRequired(true),
+          ),
       ),
 
     async execute(interaction) {
@@ -282,6 +350,11 @@ export const canvasCommand = {
 
       if (subcommand === 'preview') {
         await handleSlashPreview(interaction);
+        return;
+      }
+
+      if (subcommand === 'assignments' || subcommand === 'asm') {
+        await handleSlashAssignments(interaction);
       }
     },
   },
@@ -326,6 +399,11 @@ export const canvasCommand = {
 
       if (subcommand === 'preview') {
         await handleTextPreview(message, subcommandArgs);
+        return;
+      }
+
+      if (subcommand === 'assignments' || subcommand === 'asm') {
+        await handleTextAssignments(message, subcommandArgs);
         return;
       }
 

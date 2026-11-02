@@ -20,7 +20,7 @@ The help menu dropdown switches between General and Canvas commands. `!canvas` a
 
 ## Canvas
 
-Canvas commands are server-only. **Watchlist and preview are available to all server
+Canvas commands are server-only. **Watchlist, preview, and assignments are available to all server
 members.** Other Canvas commands require an ID in `APPROVED_USER_IDS`.
 
 | Command | Purpose |
@@ -30,6 +30,7 @@ members.** Other Canvas commands require an ID in `APPROVED_USER_IDS`.
 | `!canvas watchlist` | List courses watched in the server. |
 | `!canvas sync` | Sync watched courses now. |
 | `!canvas preview <course ID or name> [position]` | Preview one of the 10 most recent course announcements. |
+| `!canvas assignments <course ID or name>` | List all assignments and due dates, oldest first. |
 
 For watch and unwatch, omitting `#channel` uses the current channel.
 
@@ -55,6 +56,27 @@ The slash command's `course_id` option accepts either an ID or a name as well.
 Canvas announcements use Components V2 cards to keep text and images together
 without narrowing the text around small images. Long announcements and galleries
 exceeding 10 images continue in additional cards.
+
+### Assignment lists
+
+```text
+!canvas assignments 12345
+!canvas assignments operating systems
+!canvas assignments "Biology 101"
+```
+
+The command fetches all assignments from Canvas, including past assignments, rather
+than only the upcoming assignments cached for reminders. It sorts by due date from
+oldest to newest; assignments without a valid due date appear last. Dates display
+in your Discord client's local time alongside relative time (such as "in 3 days" or
+"2 days ago"), and assignment names link to Canvas when a URL
+is available. Long lists continue across multiple messages.
+
+Course names use the same current-channel matching as preview. Unlike preview,
+there is no position argument, so names ending in numbers do not require quotes.
+The slash equivalent is `/canvas assignments course_id:<ID or name>`.
+`asm` is an alias for `assignments` in both text and slash commands:
+`!canvas asm operating systems` or `/canvas asm course_id:operating systems`.
 
 ## Personal reminders
 

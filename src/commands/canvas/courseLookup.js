@@ -55,7 +55,7 @@ export function findClosestCourses(input, subscriptions) {
     .map(({ subscription }) => subscription);
 }
 
-export function resolvePreviewCourse(input, { guildId, channelId }) {
+export function resolveCanvasCourse(input, { guildId, channelId }) {
   const courseInput = input.trim();
   if (/^\d+$/.test(courseInput)) return { courseId: courseInput };
 

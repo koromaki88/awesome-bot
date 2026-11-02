@@ -47,9 +47,9 @@ export async function fetchCanvasCourse(courseId) {
   return data;
 }
 
-export async function fetchCanvasAssignments(courseId) {
+export async function fetchCanvasAssignments(courseId, { includePast = false } = {}) {
   const assignments = [];
-  let nextPath = `/courses/${courseId}/assignments?bucket=future&per_page=100`;
+  let nextPath = `/courses/${courseId}/assignments?${includePast ? '' : 'bucket=future&'}per_page=100`;
 
   while (nextPath) {
     const { data, nextUrl } = await canvasRequest(nextPath);

@@ -42,7 +42,7 @@ test('unapproved members can view the Canvas watchlist through either interface'
   assert.doesNotMatch(slashReplies[0].content, /permission/);
 });
 
-test('unapproved members can use Canvas preview through either interface', async (t) => {
+test('unapproved members can use Canvas preview and assignments through either interface', async (t) => {
   const previousIds = process.env.APPROVED_USER_IDS;
   process.env.APPROVED_USER_IDS = '';
   t.after(() => {
@@ -50,15 +50,17 @@ test('unapproved members can use Canvas preview through either interface', async
     else process.env.APPROVED_USER_IDS = previousIds;
   });
 
-  const reply = async () => assert.fail('Public preview should not be denied');
-  assert.equal(await enforceTextPermission(canvasCommand, {
-    author: { id: 'ordinary-member' }, reply,
-  }, ['PREVIEW', '123']), true);
-  assert.equal(await enforceSlashPermission(canvasCommand, {
-    user: { id: 'ordinary-member' },
-    options: { getSubcommand: () => 'preview' },
-    reply,
-  }), true);
+  const reply = async () => assert.fail('Public commands should not be denied');
+  for (const subcommand of ['preview', 'assignments', 'asm']) {
+    assert.equal(await enforceTextPermission(canvasCommand, {
+      author: { id: 'ordinary-member' }, reply,
+    }, [subcommand.toUpperCase(), '123']), true);
+    assert.equal(await enforceSlashPermission(canvasCommand, {
+      user: { id: 'ordinary-member' },
+      options: { getSubcommand: () => subcommand },
+      reply,
+    }), true);
+  }
 });
 
 test('other Canvas subcommands still require approved-user access', async (t) => {
