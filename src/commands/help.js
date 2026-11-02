@@ -32,10 +32,6 @@ const categories = [
           name: 'Commit',
           value: `\`${prefix}commit\`\nCheck whether the running bot is up to date with GitHub. Aliases: \`${prefix}version\`, \`${prefix}sha\`.`,
         },
-        {
-          name: 'Purge (server admins)',
-          value: `\`${prefix}purge <count>\`\nDelete 1–100 recent messages, excluding the command from the count. Messages at least 14 days old are skipped.`,
-        },
       ];
     },
   },
@@ -70,6 +66,21 @@ const categories = [
         {
           name: 'Assignments',
           value: `\`${prefix}canvas assignments [course ID or name]\`\nList all assignments and due dates, oldest first. Defaults to the only course watched in this channel. Alias: \`${prefix}canvas asm\`.`,
+        },
+      ];
+    },
+  },
+  {
+    id: 'admin',
+    number: 3,
+    name: 'Server Admin',
+    emoji: '🛡️',
+    description: 'Server management commands. Requires the Discord Administrator permission.',
+    commands(prefix) {
+      return [
+        {
+          name: 'Purge',
+          value: `\`${prefix}purge <count>\`\nSilently delete 1–100 recent messages, excluding the command from the count. Messages at least 14 days old are skipped.`,
         },
       ];
     },

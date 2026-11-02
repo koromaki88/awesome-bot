@@ -15,10 +15,11 @@ are available in Discord.
 | `!ping` | Check the bot's response time. |
 | `!commit` | Compare the running bot's commit against GitHub. Aliases: `!version`, `!sha`. |
 
-The help menu dropdown switches between General and Canvas commands. `!canvas` and
+The help menu dropdown switches between General, Canvas, and Server Admin commands.
+Use `!help admin` or `!help 3` for server administration commands. `!canvas` and
 `!canvas help` also open the Canvas guide, subject to Canvas command permissions.
 
-## Moderation
+## Server Admin
 
 `!purge <count>` deletes the last 1–100 messages **before the command** in the current
 channel. The `!purge` message is removed separately and does not count toward the total.
