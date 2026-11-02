@@ -3,10 +3,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { ComponentType, MessageFlags } from 'discord.js';
 
 process.env.DATABASE_PATH = join(await mkdtemp(join(tmpdir(), 'awesome-bot-canvas-preview-')), 'bot.sqlite');
 
-const { formatPreviewResult, parsePreviewPosition, toPreviewAnnouncement } = await import('../../src/commands/canvas/preview.js');
+const { formatPreviewResult, parsePreviewPosition, previewCourseAnnouncement, toPreviewAnnouncement } = await import('../../src/commands/canvas/preview.js');
 
 test('preview position defaults to one', () => {
   assert.equal(parsePreviewPosition(undefined), 1);
@@ -55,4 +56,44 @@ test('preview announcement uses fetched Canvas course name', () => {
       posted_at: '2026-08-11T12:00:00Z',
     },
   );
+});
+
+test('preview sends text and images in the same Components V2 card', async (t) => {
+  const previousBaseUrl = process.env.CANVAS_BASE_URL;
+  const previousToken = process.env.CANVAS_ACCESS_TOKEN;
+  process.env.CANVAS_BASE_URL = 'https://canvas.example.edu';
+  process.env.CANVAS_ACCESS_TOKEN = 'test-token';
+  t.after(() => {
+    if (previousBaseUrl === undefined) delete process.env.CANVAS_BASE_URL;
+    else process.env.CANVAS_BASE_URL = previousBaseUrl;
+    if (previousToken === undefined) delete process.env.CANVAS_ACCESS_TOKEN;
+    else process.env.CANVAS_ACCESS_TOKEN = previousToken;
+  });
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    const data = url.includes('/courses/123')
+      ? { id: 123, name: 'Test Course' }
+      : [{
+        title: 'Preview announcement',
+        message: '<p>Preview text</p><img src="/images/preview.png">',
+        html_url: 'https://canvas.example.edu/announcement',
+        posted_at: '2026-08-11T12:00:00Z',
+      }];
+    return { ok: true, headers: { get: () => null }, json: async () => data };
+  });
+  const sent = [];
+
+  assert.equal(await previewCourseAnnouncement({
+    courseId: '123',
+    position: 1,
+    channel: { send: async (message) => sent.push(message) },
+  }), true);
+
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].flags, MessageFlags.IsComponentsV2);
+  assert.equal(sent[0].embeds, undefined);
+  const container = sent[0].components[0];
+  assert.equal(container.type, ComponentType.Container);
+  assert.ok(container.components.some((component) => component.content?.includes('Preview text')));
+  const gallery = container.components.find((component) => component.type === ComponentType.MediaGallery);
+  assert.equal(gallery.items[0].media.url, 'https://canvas.example.edu/images/preview.png');
 });

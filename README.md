@@ -29,6 +29,10 @@ Use `/help` or `!help` for an interactive command list. Select a category from t
 or open one directly with a command such as `!help canvas`. `!canvas` and `!canvas help`
 also open the Canvas command guide.
 
+Canvas announcements use Components V2 cards to keep text and images together without
+narrowing the text around small images. Long announcements and galleries exceeding
+10 images continue in additional cards.
+
 Schedule a personal DM reminder with `!remindme 3d2h5m I want to do something`, or use
 `/remindme`. Durations can combine calendar months (`mo`), weeks (`w`), days (`d`),
 hours (`h`), minutes (`m`), and seconds (`s`). Calendar months preserve the day of the

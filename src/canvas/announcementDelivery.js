@@ -1,4 +1,9 @@
+import { ContainerBuilder, MediaGalleryBuilder, MessageFlags, TextDisplayBuilder } from 'discord.js';
+
 import { getPendingAnnouncementDeliveries, markAnnouncementDeliverySent } from '../db/announcements.js';
+
+const maxCardTextLength = 4000;
+const maxGalleryItems = 10;
 
 function decodeHtmlEntities(value) {
   return value
@@ -62,7 +67,7 @@ function chunkMessage(content, maxLength = 3700) {
   return chunks;
 }
 
-function truncateEmbedTitle(title) {
+function truncateHeading(title) {
   if (title.length <= 256) return title;
 
   return `${title.slice(0, 253)}...`;
@@ -81,31 +86,49 @@ export function formatAnnouncementMessages(announcement) {
   const source = announcement.html_url ? `\n\n[Open in Canvas](${announcement.html_url})` : '';
   const content = `${body}${source}`;
   const imageUrls = extractImageUrls(announcement.message);
-  const chunks = chunkMessage(content);
-  const author = `Announcement - ${courseName} (${announcement.canvas_course_id})`;
-  const announcementTitle = announcement.title ?? 'Untitled announcement';
+  const author = truncateHeading(`Announcement - ${courseName} (${announcement.canvas_course_id})`);
+  const announcementTitle = truncateHeading(announcement.title ?? 'Untitled announcement');
   const timestamp = validTimestamp(announcement.posted_at);
-  const messages = chunks.map((description, index) => ({
-    embeds: [
-      {
-        title: truncateEmbedTitle(chunks.length > 1 ? `${announcementTitle} (${index + 1}/${chunks.length})` : announcementTitle),
-        url: announcement.html_url ?? undefined,
-        description,
-        color: 0xe13f29,
-        author: { name: author },
-        timestamp,
-      },
-    ],
-  }));
+  const footer = timestamp ? `-# <t:${Math.floor(new Date(timestamp).getTime() / 1000)}:f>` : '';
+  const heading = `-# ${author}\n## ${announcementTitle}`;
+  // Reserve space for the heading, timestamp, and continuation numbering in the
+  // per-message text budget, not just the individual Text Display limit.
+  const chunks = chunkMessage(content, maxCardTextLength - heading.length - footer.length - 32);
+  const containers = chunks.map((description, index) => {
+    const part = chunks.length > 1 ? ` (${index + 1}/${chunks.length})` : '';
+    return new ContainerBuilder()
+      .setAccentColor(0xe13f29)
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(`${heading}${part}`),
+        new TextDisplayBuilder().setContent(description),
+      );
+  });
 
-  // Keep Canvas images separate from text. Small inline images (icons, signatures,
-  // spacers, and similar content) can cause Discord to render the text embed at
-  // the image's narrow intrinsic width.
-  for (const imageUrl of imageUrls) {
-    messages.push({ embeds: [{ title: 'Announcement image', image: { url: imageUrl }, color: 0xe13f29, author: { name: author } }] });
+  // A gallery shares the card with the text without tying the text layout to an
+  // image's intrinsic width. Additional images overflow into numbered cards.
+  for (let offset = 0; offset < imageUrls.length; offset += maxGalleryItems) {
+    if (offset > 0) {
+      containers.push(new ContainerBuilder()
+        .setAccentColor(0xe13f29)
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(
+          `${heading}\n-# More announcement images (${Math.floor(offset / maxGalleryItems) + 1})`,
+        )));
+    }
+
+    containers.at(-1).addMediaGalleryComponents(new MediaGalleryBuilder().addItems(
+      imageUrls.slice(offset, offset + maxGalleryItems).map((url) => ({ media: { url } })),
+    ));
   }
 
-  return messages;
+  return containers.map((container) => {
+    if (footer) container.addTextDisplayComponents(new TextDisplayBuilder().setContent(footer));
+
+    return {
+      flags: MessageFlags.IsComponentsV2,
+      allowedMentions: { parse: [] },
+      components: [container.toJSON()],
+    };
+  });
 }
 
 export async function sendPendingAnnouncements(client, options = {}) {
